@@ -1,0 +1,123 @@
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        try {
+          const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
+          localStorage.setItem('accessToken', response.data.accessToken);
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+export const authService = {
+  register: (data) => api.post('/auth/register', data),
+  login: (data) => api.post('/auth/login', data),
+  loginPhone: (data) => api.post('/auth/login/phone', data),
+  googleAuth: (idToken) => api.post('/auth/google', { idToken }),
+  refresh: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
+};
+
+export const userService = {
+  getMe: () => api.get('/user/me'),
+  updateMe: (data) => api.put('/user/me', data),
+  changePassword: (data) => api.put('/user/password', data),
+  getAllUsers: (params) => api.get('/user/all', { params }),
+  searchUsers: (q) => api.get('/user/search', { params: { q } }),
+};
+
+export const walletService = {
+  getBalance: () => api.get('/wallet'),
+  getTransactions: (params) => api.get('/wallet/transactions', { params }),
+  deposit: (data) => api.post('/wallet/deposit', data),
+  transfer: (data) => api.post('/wallet/transfer', data),
+  addBalance: (data) => api.post('/wallet/add', data),
+};
+
+export const withdrawService = {
+  request: (data) => api.post('/withdraw/request', data),
+  getMyRequests: (params) => api.get('/withdraw/my-requests', { params }),
+  getAllRequests: (params) => api.get('/withdraw/all', { params }),
+  updateRequest: (id, data) => api.patch(`/withdraw/${id}`, data),
+};
+
+export const gameService = {
+  getAll: (params) => api.get('/games', { params }),
+  getCategories: () => api.get('/games/categories'),
+  getFeatured: () => api.get('/games/featured'),
+  getOne: (id) => api.get(`/games/${id}`),
+};
+
+export const leaderboardService = {
+  getMonthly: () => api.get('/leaderboard/monthly'),
+  getTop: (limit = 10) => api.get('/leaderboard/top', { params: { limit } }),
+  getMyRank: () => api.get('/leaderboard/rank/me'),
+  getUserRank: (userId) => api.get(`/leaderboard/rank/${userId}`),
+};
+
+export const achievementService = {
+  getAll: () => api.get('/achievements'),
+  getMy: () => api.get('/achievements/my'),
+  updateProgress: (data) => api.post('/achievements/progress', data),
+  claim: (achievementId) => api.post(`/achievements/${achievementId}/claim`),
+};
+
+export const bonusService = {
+  getAll: () => api.get('/bonuses'),
+  getMy: () => api.get('/bonuses/my'),
+  validate: (code) => api.post('/bonuses/validate', { code }),
+  claim: (code) => api.post('/bonuses/claim', { code }),
+  getReferral: () => api.get('/bonuses/referral'),
+};
+
+export const notificationService = {
+  getAll: (params) => api.get('/notifications', { params }),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markRead: (id) => api.patch(`/notifications/${id}/read`),
+  markAllRead: () => api.patch('/notifications/read-all'),
+  delete: (id) => api.delete(`/notifications/${id}`),
+  deleteAll: () => api.delete('/notifications'),
+};
+
+export const adminService = {
+  createSubadmin: (data) => api.post('/admin/create-subadmin', data),
+  getStats: () => api.get('/admin/stats'),
+};
+
+export default api;
