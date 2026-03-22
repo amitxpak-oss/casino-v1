@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Check, Lock } from 'lucide-react';
+import { Trophy, Check, Lock, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { achievementService } from '../services/api';
 import toast from 'react-hot-toast';
@@ -8,6 +8,7 @@ const Achievements = () => {
   const [achievements, setAchievements] = useState([]);
   const [myAchievements, setMyAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -27,12 +28,15 @@ const Achievements = () => {
   };
 
   const handleClaim = async (achievementId) => {
+    setClaiming(achievementId);
     try {
       await achievementService.claim(achievementId);
       toast.success('Achievement claimed!');
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to claim');
+    } finally {
+      setClaiming(null);
     }
   };
 
@@ -142,12 +146,13 @@ const Achievements = () => {
                   <div className="text-lg font-extrabold text-success">₹{achievement.reward}</div>
                   {claimable && (
                     <motion.button 
-                      className="py-2 px-4 rounded-xl font-semibold text-xs cursor-pointer bg-gradient-to-r from-primary to-neon-purple text-white shadow-lg shadow-primary/30 transition-all duration-300"
+                      className="py-2 px-4 rounded-xl font-semibold text-xs cursor-pointer bg-gradient-to-r from-primary to-neon-purple text-white shadow-lg shadow-primary/30 transition-all duration-300 disabled:opacity-50"
                       onClick={() => handleClaim(achievement.id)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      disabled={claiming === achievement.id}
                     >
-                      Claim
+                      {claiming === achievement.id ? <Loader2 size={14} className="animate-spin mx-auto" /> : 'Claim'}
                     </motion.button>
                   )}
                   {unlocked && <span className="px-3 py-1 rounded-full bg-success/20 text-success text-xs font-semibold">Claimed</span>}

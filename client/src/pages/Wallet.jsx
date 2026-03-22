@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, ArrowDownRight, ArrowUpRight, Gift, History, Copy, Check, Sparkles, CreditCard, Building2, Smartphone, TrendingUp, ChevronRight } from 'lucide-react';
+import { Wallet, ArrowDownRight, ArrowUpRight, Gift, History, Copy, Check, Sparkles, CreditCard, Building2, Smartphone, TrendingUp, ChevronRight, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { walletService } from '../services/api';
@@ -17,6 +17,7 @@ const WalletPage = () => {
   const [amount, setAmount] = useState('');
   const [bonusCode, setBonusCode] = useState('');
   const [copied, setCopied] = useState('');
+  const [buttonLoading, setButtonLoading] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'history') fetchTransactions();

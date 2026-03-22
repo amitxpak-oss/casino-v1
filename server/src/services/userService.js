@@ -109,9 +109,21 @@ export const userService = {
     });
   },
 
-  async getAll(page = 1, limit = 20, role = null) {
+  async getAll(page = 1, limit = 20, role = null, search = null) {
     const skip = (page - 1) * limit;
-    const where = role ? { role } : {};
+    let where = {};
+    
+    if (role) {
+      where.role = role;
+    }
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } }
+      ];
+    }
     
     const [users, total] = await Promise.all([
       prisma.user.findMany({

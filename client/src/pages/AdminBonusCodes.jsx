@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Plus, Edit2, Trash2, Calendar, Percent, Coins, X, Check, Loader2, Clock, Users, ToggleLeft, ToggleRight } from 'lucide-react';
 import { coinBonusService } from '../services/api';
 import toast from 'react-hot-toast';

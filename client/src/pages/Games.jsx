@@ -216,7 +216,7 @@ const Games = () => {
                   variants={cardVariants}
                   className="rounded-3xl overflow-hidden"
                 >
-                  <div className="bg-gray-800/30 border border-white/5 rounded-3xl skeleton skeleton-card skeleton-glow">
+                  <div className="rounded-3xl skeleton skeleton-card skeleton-glow">
                     <div className="h-32 sm:h-40 rounded-t-3xl skeleton" />
                     <div className="p-4">
                       <div className="h-4 w-3/4 rounded-lg skeleton mb-3" />

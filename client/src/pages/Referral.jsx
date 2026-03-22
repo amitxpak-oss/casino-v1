@@ -72,7 +72,7 @@ const Referral = () => {
               <div className="h-4 w-24 rounded skeleton" />
             </div>
           </div>
-          <div className="p-4 bg-black/30 rounded-2xl mb-4">
+          <div className="p-4 rounded-2xl mb-4 skeleton">
             <div className="h-10 w-40 mx-auto rounded skeleton" />
           </div>
           <div className="flex gap-3">

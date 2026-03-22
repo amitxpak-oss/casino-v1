@@ -38,8 +38,13 @@ export const userController = {
 
   async getAll(req, res) {
     try {
-      const { page = 1, limit = 20, role } = req.query;
-      const result = await userService.getAll(parseInt(page), parseInt(limit), role);
+      const { page = 1, limit = 20, role, search } = req.query;
+      const result = await userService.getAll(
+        parseInt(page), 
+        parseInt(limit), 
+        role || null,
+        search || null
+      );
       res.json(result);
     } catch (error) {
       console.error('Get all users error:', error);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, Eye, RefreshCw, ChevronLeft, ChevronRight, Filter, DollarSign, Gamepad2, Trophy, Calendar, Mail, Phone, X } from 'lucide-react';
+import { Users, Search, Eye, RefreshCw, ChevronLeft, ChevronRight, Filter, DollarSign, Gamepad2, Trophy, Calendar, Mail, Phone, X, Loader2, Ban, Trash2, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../services/api';
@@ -9,12 +9,14 @@ const AdminUsers = () => {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
   const [filter, setFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -46,12 +48,16 @@ const AdminUsers = () => {
   };
 
   const searchUsers = async () => {
+    if (search.length < 2) {
+      fetchUsers();
+      return;
+    }
     setLoading(true);
     try {
-      const response = await userService.searchUsers(search);
+      const response = await userService.getAllUsers({ search: search, page: 1, limit: 50 });
       setUsers(response.data.users || []);
       setTotalPages(1);
-      setTotalUsers(response.data.users?.length || 0);
+      setTotalUsers(response.data.total || 0);
     } catch (error) {
       console.error('Failed to search users:', error);
       toast.error('Failed to search users');
@@ -83,10 +89,11 @@ const AdminUsers = () => {
           <p className="text-sm text-gray-400">{totalUsers} total users</p>
         </div>
         <motion.button
-          className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all self-start"
+          className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all self-start disabled:opacity-50"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={fetchUsers}
+          disabled={loading}
         >
           <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
         </motion.button>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Trophy, Wallet, Gift, Award, AlertCircle, Trash2, CheckCheck, Check } from 'lucide-react';
+import { Bell, Trophy, Wallet, Gift, Award, AlertCircle, Trash2, CheckCheck, Check, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { notificationService } from '../services/api';
 import toast from 'react-hot-toast';
@@ -8,6 +8,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => { fetchNotifications(); }, [filter]);
 
@@ -26,25 +27,32 @@ const Notifications = () => {
   };
 
   const handleMarkRead = async (id) => {
+    setActionLoading(id);
     try {
       await notificationService.markRead(id);
       setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
     } catch (error) {
       console.error('Failed to mark as read:', error);
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handleMarkAllRead = async () => {
+    setActionLoading('all');
     try {
       await notificationService.markAllRead();
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
       toast.success('All notifications marked as read');
     } catch (error) {
       toast.error('Failed to mark all as read');
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handleDelete = async (id) => {
+    setActionLoading(id);
     try {
       await notificationService.delete(id);
       setNotifications(notifications.filter(n => n.id !== id));
@@ -55,12 +63,15 @@ const Notifications = () => {
   };
 
   const handleDeleteAll = async () => {
+    setActionLoading('deleteAll');
     try {
       await notificationService.deleteAll();
       setNotifications([]);
       toast.success('All notifications deleted');
     } catch (error) {
       toast.error('Failed to delete notifications');
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -120,22 +131,24 @@ const Notifications = () => {
         <div className="flex gap-2">
           {unreadCount > 0 && (
             <motion.button 
-              className="p-2.5 rounded-xl bg-transparent text-text-secondary border border-white/10 cursor-pointer transition-all duration-300 hover:bg-white/5 hover:text-white hover:border-primary/30"
+              className="p-2.5 rounded-xl bg-transparent text-text-secondary border border-white/10 cursor-pointer transition-all duration-300 hover:bg-white/5 hover:text-white hover:border-primary/30 disabled:opacity-50"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleMarkAllRead}
+              disabled={actionLoading === 'all'}
             >
-              <CheckCheck size={18} />
+              {actionLoading === 'all' ? <Loader2 size={18} className="animate-spin" /> : <CheckCheck size={18} />}
             </motion.button>
           )}
           {notifications.length > 0 && (
             <motion.button 
-              className="p-2.5 rounded-xl bg-transparent text-text-secondary border border-white/10 cursor-pointer transition-all duration-300 hover:bg-danger/10 hover:text-danger hover:border-danger/30"
+              className="p-2.5 rounded-xl bg-transparent text-text-secondary border border-white/10 cursor-pointer transition-all duration-300 hover:bg-danger/10 hover:text-danger hover:border-danger/30 disabled:opacity-50"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleDeleteAll}
+              disabled={actionLoading === 'deleteAll'}
             >
-              <Trash2 size={18} />
+              {actionLoading === 'deleteAll' ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
             </motion.button>
           )}
         </div>
@@ -182,21 +195,23 @@ const Notifications = () => {
                 <div className="flex gap-1.5 shrink-0">
                   {!notification.isRead && (
                     <motion.button 
-                      className="p-2 rounded-lg bg-transparent text-text-secondary border border-white/10 cursor-pointer transition-all duration-300 hover:bg-white/5 hover:text-white hover:border-primary/30"
+                      className="p-2 rounded-lg bg-transparent text-text-secondary border border-white/10 cursor-pointer transition-all duration-300 hover:bg-white/5 hover:text-white hover:border-primary/30 disabled:opacity-50"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleMarkRead(notification.id)}
+                      disabled={actionLoading === notification.id}
                     >
-                      <Check size={16} />
+                      {actionLoading === notification.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                     </motion.button>
                   )}
                   <motion.button 
-                    className="p-2 rounded-lg bg-transparent text-text-secondary border border-white/10 cursor-pointer transition-all duration-300 hover:bg-danger/10 hover:text-danger hover:border-danger/30"
+                    className="p-2 rounded-lg bg-transparent text-text-secondary border border-white/10 cursor-pointer transition-all duration-300 hover:bg-danger/10 hover:text-danger hover:border-danger/30 disabled:opacity-50"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleDelete(notification.id)}
+                    disabled={actionLoading === notification.id}
                   >
-                    <Trash2 size={16} />
+                    {actionLoading === notification.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                   </motion.button>
                 </div>
               </div>

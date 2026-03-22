@@ -59,7 +59,6 @@ export const userService = {
   updateMe: (data) => api.put('/user/me', data),
   changePassword: (data) => api.put('/user/password', data),
   getAllUsers: (params) => api.get('/user/all', { params }),
-  searchUsers: (q) => api.get('/user/search', { params: { q } }),
 };
 
 export const walletService = {
