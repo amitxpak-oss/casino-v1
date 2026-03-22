@@ -248,7 +248,7 @@ const Home = () => {
                 </div>
                 <div className="flex items-center gap-1.5 text-success font-bold text-sm sm:text-base shrink-0">
                   <Sparkles size={16} className="text-gold" />
-                  {formatCurrency(player.totalWinnings)}
+                  {formatCurrency(player.totalWinnings || player.balance || 0)}
                 </div>
               </motion.div>
             ))

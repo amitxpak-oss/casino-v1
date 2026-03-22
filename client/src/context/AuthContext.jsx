@@ -12,20 +12,32 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('accessToken');
     
     if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
       fetchUser();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const fetchUser = async () => {
     try {
       const response = await userService.getMe();
-      setUser(response.data);
-      localStorage.setItem('user', JSON.stringify(response.data));
+      const freshUser = response.data?.user;
+      if (freshUser) {
+        setUser(freshUser);
+        localStorage.setItem('user', JSON.stringify(freshUser));
+        return freshUser;
+      }
+      return null;
     } catch (error) {
       console.error('Failed to fetch user:', error);
-      logout();
+      if (error.response?.status === 401) {
+        logout();
+      }
+      return null;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,6 +49,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(user));
     setUser(user);
+    setLoading(false);
     
     return response.data;
   };
@@ -78,10 +91,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    setUser(null);
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
-    setUser(null);
   };
 
   const updateUser = (updates) => {

@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { walletService, gameService, leaderboardService } from '../services/api';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [games, setGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -19,14 +19,19 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [gamesRes, leaderboardRes, transactionsRes] = await Promise.all([
-        gameService.getAll({ featured: true }),
-        leaderboardService.getTop(5),
-        walletService.getTransactions({ limit: 5 }),
-      ]);
-      setGames(gamesRes.data.games || []);
-      setLeaderboard(leaderboardRes.data.leaders || []);
-      setTransactions(transactionsRes.data.transactions || []);
+      const gamesRes = await gameService.getAll({ limit: 4 });
+      const leaderboardRes = await leaderboardService.getTop(5);
+      
+      setGames(gamesRes.data?.games || []);
+      setLeaderboard(leaderboardRes.data?.leaders || []);
+      
+      try {
+        const transactionsRes = await walletService.getTransactions(1, 5);
+        setTransactions(transactionsRes.data?.transactions || []);
+      } catch (txError) {
+        console.log('Transactions fetch skipped:', txError.message);
+        setTransactions([]);
+      }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -58,10 +63,18 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <div className="w-14 h-14 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <p className="text-text-muted">Please login to view dashboard</p>
       </div>
     );
   }
@@ -96,7 +109,7 @@ const Dashboard = () => {
                 Total Balance
               </p>
               <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 drop-shadow-lg">
-                {formatCurrency(user?.balance || 0)}
+                {formatCurrency(user?.balance ?? 0)}
               </h2>
             </div>
             <Sparkles size={40} className="text-gold drop-shadow-lg animate-pulse" />
@@ -104,11 +117,11 @@ const Dashboard = () => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="p-4 bg-black/20 rounded-2xl backdrop-blur-sm border border-white/10">
               <p className="text-xs opacity-80 mb-1">Bonus</p>
-              <p className="text-xl sm:text-2xl font-bold">{formatCurrency(user?.bonusBalance || 0)}</p>
+              <p className="text-xl sm:text-2xl font-bold">{formatCurrency(user?.bonusBalance ?? 0)}</p>
             </div>
             <div className="p-4 bg-black/20 rounded-2xl backdrop-blur-sm border border-white/10">
               <p className="text-xs opacity-80 mb-1">Winnings</p>
-              <p className="text-xl sm:text-2xl font-bold">{formatCurrency(user?.totalWinnings || 0)}</p>
+              <p className="text-xl sm:text-2xl font-bold">{formatCurrency(user?.totalWinnings ?? 0)}</p>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -140,7 +153,7 @@ const Dashboard = () => {
             <Gamepad2 size={24} className="text-primary" />
           </div>
           <div className="text-xl sm:text-2xl md:text-3xl font-black bg-gradient-to-r from-primary to-neon-purple bg-clip-text text-transparent mb-1">
-            {user?.gamesPlayed || 0}
+            {user?.gamesPlayed ?? 0}
           </div>
           <div className="text-[10px] sm:text-xs text-text-muted font-medium uppercase tracking-wider">Games Played</div>
         </motion.div>
@@ -149,7 +162,7 @@ const Dashboard = () => {
             <Trophy size={24} className="text-success" />
           </div>
           <div className="text-xl sm:text-2xl md:text-3xl font-black bg-gradient-to-r from-success to-emerald-400 bg-clip-text text-transparent mb-1">
-            {user?.gamesWon || 0}
+            {user?.gamesWon ?? 0}
           </div>
           <div className="text-[10px] sm:text-xs text-text-muted font-medium uppercase tracking-wider">Games Won</div>
         </motion.div>
@@ -158,7 +171,7 @@ const Dashboard = () => {
             <Flame size={24} className="text-warning" />
           </div>
           <div className="text-xl sm:text-2xl md:text-3xl font-black bg-gradient-to-r from-warning to-amber-400 bg-clip-text text-transparent mb-1">
-            {user?.streak || 0}
+            {user?.streak ?? 0}
           </div>
           <div className="text-[10px] sm:text-xs text-text-muted font-medium uppercase tracking-wider">Win Streak</div>
         </motion.div>
@@ -271,7 +284,7 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center gap-1.5 text-success font-bold text-sm sm:text-base shrink-0">
                 <Sparkles size={16} className="text-gold" />
-                {formatCurrency(player.totalWinnings || 0)}
+                {formatCurrency(player.totalWinnings || player.balance || 0)}
               </div>
             </motion.div>
           ))}

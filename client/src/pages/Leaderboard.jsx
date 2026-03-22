@@ -147,7 +147,7 @@ const Leaderboard = () => {
                   <div className="font-bold text-xs sm:text-sm truncate px-1">{player.name}</div>
                   <div className="flex items-center justify-center gap-0.5 text-[10px] sm:text-xs text-text-muted mt-0.5 sm:mt-1">
                     <Sparkles size={8} className="text-gold" />
-                    {formatCurrency(player.totalWinnings)}
+                    {formatCurrency(player.totalWinnings || player.balance || 0)}
                   </div>
                   <div className={`mt-2 sm:mt-3 py-1.5 sm:py-2.5 rounded-t-xl text-[10px] sm:text-xs font-semibold ${isFirst ? 'from-gold/30 to-gold/10 border border-gold/30' : 'from-primary/20 to-primary/10 border border-primary/20'}`}>
                     {player.gamesWon || 0} wins
@@ -218,7 +218,7 @@ const Leaderboard = () => {
                 
                 <div className="flex items-center gap-1 font-bold text-xs sm:text-sm shrink-0">
                   <Sparkles size={12} className="text-gold hidden sm:inline" />
-                  <span className="text-success">{formatCurrency(player.totalWinnings)}</span>
+                  <span className="text-success">{formatCurrency(player.totalWinnings || player.balance || 0)}</span>
                 </div>
               </motion.div>
             ))}

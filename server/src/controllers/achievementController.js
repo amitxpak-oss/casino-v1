@@ -14,16 +14,21 @@ const defaultAchievements = [
 ];
 
 async function seedAchievements() {
-  for (const ach of defaultAchievements) {
-    await prisma.achievement.upsert({
-      where: { name: ach.name },
-      update: {},
-      create: ach
-    });
+  try {
+    for (const ach of defaultAchievements) {
+      await prisma.achievement.upsert({
+        where: { name: ach.name },
+        update: {},
+        create: ach
+      });
+    }
+    console.log('Achievements seeded successfully');
+  } catch (error) {
+    console.error('Failed to seed achievements:', error.message);
   }
 }
 
-seedAchievements().catch(console.error);
+seedAchievements();
 
 export const achievementController = {
   async getAll(req, res) {

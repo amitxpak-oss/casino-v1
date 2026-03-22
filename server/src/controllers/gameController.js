@@ -64,14 +64,15 @@ export const gameController = {
           where: { ...where, isActive: true },
           skip: (page - 1) * limit,
           take: parseInt(limit),
-          orderBy: { featured: 'desc' }
+          orderBy: { isFeatured: 'desc' }
         }),
         prisma.game.count({ where: { ...where, isActive: true } })
       ]);
       
       res.json({ games, total, page: parseInt(page), limit: parseInt(limit) });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch games' });
+      console.error('Error fetching games:', error);
+      res.status(500).json({ error: 'Failed to fetch games', details: error.message });
     }
   },
 
@@ -97,7 +98,7 @@ export const gameController = {
   async getFeatured(req, res) {
     try {
       const games = await prisma.game.findMany({
-        where: { isActive: true, featured: true },
+        where: { isActive: true, isFeatured: true },
         take: 10,
         orderBy: { views: 'desc' }
       });
@@ -110,8 +111,9 @@ export const gameController = {
 
   async getById(req, res) {
     try {
+      const { id } = req.params;
       const game = await prisma.game.findUnique({
-        where: { id: req.params.id }
+        where: { id }
       });
       
       if (!game) {
@@ -121,10 +123,11 @@ export const gameController = {
       await prisma.game.update({
         where: { id: game.id },
         data: { views: { increment: 1 } }
-      });
+      }).catch(() => {});
       
       res.json({ game });
     } catch (error) {
+      console.error('Get game by ID error:', error);
       res.status(500).json({ error: 'Failed to fetch game' });
     }
   },

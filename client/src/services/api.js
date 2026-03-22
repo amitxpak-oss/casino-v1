@@ -64,7 +64,7 @@ export const userService = {
 
 export const walletService = {
   getBalance: () => api.get('/wallet'),
-  getTransactions: (params) => api.get('/wallet/transactions', { params }),
+  getTransactions: (page = 1, limit = 20) => api.get(`/wallet/transactions?page=${page}&limit=${limit}`),
   deposit: (data) => api.post('/wallet/deposit', data),
   transfer: (data) => api.post('/wallet/transfer', data),
   addBalance: (data) => api.post('/wallet/add', data),

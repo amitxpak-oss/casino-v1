@@ -21,14 +21,19 @@ const GamePlay = () => {
   const [gameResult, setGameResult] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [history, setHistory] = useState([]);
-  const [balance, setBalance] = useState(user?.balance || 0);
+  const [balance, setBalance] = useState(0);
   const [gameHistory, setGameHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
+    if (user?.balance !== undefined) {
+      setBalance(user.balance);
+    }
+  }, [user?.balance]);
+
+  useEffect(() => {
     fetchGame();
     fetchGameHistory();
-    setBalance(user?.balance || 0);
   }, [id]);
 
   const fetchGame = async () => {
@@ -55,8 +60,10 @@ const GamePlay = () => {
 
   const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(amount || 0);
 
+  const needsSelection = ['Colour', 'Matka', 'Ludo'].includes(game?.name);
+
   const placeBet = async () => {
-    if (!selectedOption) {
+    if (needsSelection && !selectedOption) {
       toast.error('Please select an option');
       return;
     }
@@ -396,13 +403,13 @@ const GamePlay = () => {
 
               <motion.button
                 className={`w-full py-5 rounded-2xl font-bold text-lg cursor-pointer shadow-lg transition-all duration-300 flex items-center justify-center gap-3 ${
-                  isPlaying || !selectedOption
+                  isPlaying || (needsSelection && !selectedOption) || betAmount < (game?.minBet || 10)
                     ? 'bg-gray-500/50 cursor-not-allowed'
                     : 'bg-gradient-to-r from-success to-emerald-600 text-white shadow-success/30 hover:shadow-success/50'
                 }`}
-                disabled={isPlaying || !selectedOption}
-                whileHover={!isPlaying && selectedOption ? { scale: 1.02 } : {}}
-                whileTap={!isPlaying && selectedOption ? { scale: 0.98 } : {}}
+                disabled={isPlaying || (needsSelection && !selectedOption) || betAmount < (game?.minBet || 10)}
+                whileHover={!isPlaying && (!needsSelection || selectedOption) ? { scale: 1.02 } : {}}
+                whileTap={!isPlaying && (!needsSelection || selectedOption) ? { scale: 0.98 } : {}}
                 onClick={placeBet}
               >
                 {isPlaying ? (

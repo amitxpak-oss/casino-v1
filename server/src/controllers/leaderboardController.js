@@ -22,6 +22,7 @@ export const leaderboardController = {
 
       const ranked = leaders.map((user, index) => ({
         ...user,
+        totalWinnings: user.balance,
         rank: index + 1,
         winRate: user.gamesPlayed > 0 
           ? Math.round((user.gamesWon / user.gamesPlayed) * 100) 
@@ -48,11 +49,18 @@ export const leaderboardController = {
         select: {
           id: true,
           name: true,
-          balance: true
+          balance: true,
+          gamesWon: true
         }
       });
 
-      res.json({ leaders });
+      const ranked = leaders.map((user, index) => ({
+        ...user,
+        totalWinnings: user.balance,
+        rank: index + 1
+      }));
+
+      res.json({ leaders: ranked });
     } catch (error) {
       console.error('Get top users error:', error);
       res.status(500).json({ error: 'Failed to fetch top users.' });
