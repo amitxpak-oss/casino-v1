@@ -8,6 +8,8 @@ import AppLayout from './components/AppLayout';
 import AuthModal from './components/AuthModal';
 import LoginRequired from './components/LoginRequired';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Games from './pages/Games';
 import Wallet from './pages/Wallet';
@@ -112,6 +114,18 @@ function AppRoutes() {
         <Route path="/" element={
           <HomeRedirect>
             <Home />
+          </HomeRedirect>
+        } />
+        
+        <Route path="/login" element={
+          <HomeRedirect>
+            <Login />
+          </HomeRedirect>
+        } />
+        
+        <Route path="/signup" element={
+          <HomeRedirect>
+            <Signup />
           </HomeRedirect>
         } />
         
