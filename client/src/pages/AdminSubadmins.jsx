@@ -123,12 +123,15 @@ const AdminSubadmins = () => {
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl bg-gray-800/50 border border-white/10 p-5 animate-pulse">
+            <div key={i} className="rounded-2xl skeleton skeleton-card skeleton-glow p-5">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-14 h-14 rounded-xl bg-gray-700/50" />
-                <div className="flex-1"><div className="h-4 w-24 bg-gray-700/50 rounded mb-2" /><div className="h-3 w-32 bg-gray-700/50 rounded" /></div>
+                <div className="w-14 h-14 rounded-xl skeleton skeleton-avatar" />
+                <div className="flex-1">
+                  <div className="h-4 w-24 rounded skeleton mb-2" />
+                  <div className="h-3 w-32 rounded skeleton" />
+                </div>
               </div>
-              <div className="h-10 bg-gray-700/50 rounded" />
+              <div className="h-10 rounded skeleton" />
             </div>
           ))}
         </div>

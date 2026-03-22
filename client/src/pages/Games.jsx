@@ -216,11 +216,11 @@ const Games = () => {
                   variants={cardVariants}
                   className="rounded-3xl overflow-hidden"
                 >
-                  <div className="bg-gray-800/50 border border-white/10 rounded-3xl">
-                    <div className="h-32 bg-gradient-to-br from-gray-700/50 to-gray-800/50 animate-pulse" />
+                  <div className="bg-gray-800/30 border border-white/5 rounded-3xl skeleton skeleton-card skeleton-glow">
+                    <div className="h-32 sm:h-40 rounded-t-3xl skeleton" />
                     <div className="p-4">
-                      <div className="h-4 w-3/4 bg-gray-700/50 rounded animate-pulse mb-2" />
-                      <div className="h-3 w-1/2 bg-gray-700/50 rounded animate-pulse" />
+                      <div className="h-4 w-3/4 rounded-lg skeleton mb-3" />
+                      <div className="h-3 w-1/2 rounded-lg skeleton" />
                     </div>
                   </div>
                 </motion.div>

@@ -65,8 +65,50 @@ const Dashboard = () => {
 
   if (authLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="w-14 h-14 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
+      <div className="w-full max-w-[1400px] mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="h-6 w-24 rounded skeleton mb-2" />
+            <div className="h-10 w-40 rounded-lg skeleton" />
+          </div>
+          <div className="w-14 h-14 rounded-2xl skeleton skeleton-avatar" />
+        </div>
+
+        <div className="relative overflow-hidden rounded-3xl p-8 mb-8 skeleton skeleton-card">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <div className="h-4 w-28 rounded skeleton mb-3" />
+              <div className="h-14 w-48 rounded-lg skeleton mb-4" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="h-20 rounded-2xl skeleton" />
+            <div className="h-20 rounded-2xl skeleton" />
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1 h-14 rounded-2xl skeleton" />
+            <div className="flex-1 h-14 rounded-2xl skeleton" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl skeleton skeleton-card p-4 sm:p-6 text-center">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-3 rounded-2xl skeleton" />
+              <div className="h-8 w-16 mx-auto rounded skeleton mb-2" />
+              <div className="h-3 w-20 mx-auto rounded skeleton" />
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-2xl skeleton skeleton-card p-4 sm:p-6 text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl skeleton" />
+              <div className="h-4 w-16 mx-auto rounded skeleton" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

@@ -162,10 +162,10 @@ const Home = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="premium-card rounded-2xl p-6 animate-pulse">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-primary/10 to-neon-purple/10" />
-                <div className="w-3/4 h-5 mx-auto mb-2 rounded-lg bg-gradient-to-r from-primary/10 to-neon-purple/10" />
-                <div className="w-1/2 h-4 mx-auto rounded-lg bg-gradient-to-r from-primary/10 to-neon-purple/10" />
+              <div key={i} className="premium-card rounded-2xl p-5 skeleton skeleton-glow">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl skeleton" />
+                <div className="w-3/4 h-5 mx-auto mb-2 rounded-lg skeleton" />
+                <div className="w-1/2 h-4 mx-auto rounded-lg skeleton" />
               </div>
             ))
           ) : games.length > 0 ? (

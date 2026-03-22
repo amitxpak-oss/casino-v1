@@ -142,8 +142,17 @@ const Notifications = () => {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="w-12 h-12 border-3 border-primary/10 border-t-primary rounded-full animate-spin" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="rounded-2xl skeleton skeleton-card p-4 flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl skeleton" />
+              <div className="flex-1">
+                <div className="h-4 w-3/4 rounded skeleton mb-2" />
+                <div className="h-3 w-1/2 rounded skeleton mb-2" />
+                <div className="h-3 w-24 rounded skeleton" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-20">

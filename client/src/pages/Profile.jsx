@@ -80,6 +80,34 @@ const Profile = () => {
     { icon: Shield, title: 'Privacy & Security', subtitle: 'Manage your data', onClick: () => {}, color: '#06b6d4' },
   ];
 
+  if (!user) {
+    return (
+      <div className="w-full max-w-[1400px] mx-auto">
+        <div className="mb-6 sm:mb-7">
+          <div className="h-10 w-32 rounded-lg skeleton mb-2" />
+          <div className="h-5 w-40 rounded skeleton" />
+        </div>
+
+        <div className="bg-gradient-to-b from-bg-card-hover to-bg-card border border-white/5 rounded-3xl p-8 sm:p-10 text-center skeleton skeleton-card">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 mx-auto mb-6 rounded-full skeleton skeleton-avatar" />
+          <div className="h-8 w-40 mx-auto rounded-lg skeleton mb-3" />
+          <div className="h-5 w-48 mx-auto rounded skeleton mb-4" />
+          <div className="h-8 w-24 mx-auto rounded-full skeleton" />
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 my-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-gradient-to-b from-bg-card-hover to-bg-card border border-white/5 rounded-2xl p-4 sm:p-6 text-center skeleton skeleton-card">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl skeleton" />
+              <div className="h-6 w-20 mx-auto rounded skeleton mb-2" />
+              <div className="h-3 w-16 mx-auto rounded skeleton" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className="flex items-center justify-between mb-6 sm:mb-7">

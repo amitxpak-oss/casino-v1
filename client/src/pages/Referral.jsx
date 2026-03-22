@@ -58,8 +58,41 @@ const Referral = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="w-full max-w-[600px] mx-auto">
+        <div className="mb-8">
+          <div className="h-10 w-40 rounded-lg skeleton mb-2" />
+          <div className="h-5 w-48 rounded skeleton" />
+        </div>
+
+        <div className="relative overflow-hidden rounded-3xl p-6 skeleton skeleton-card mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-14 h-14 rounded-2xl skeleton" />
+            <div>
+              <div className="h-5 w-32 rounded skeleton mb-2" />
+              <div className="h-4 w-24 rounded skeleton" />
+            </div>
+          </div>
+          <div className="p-4 bg-black/30 rounded-2xl mb-4">
+            <div className="h-10 w-40 mx-auto rounded skeleton" />
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1 h-14 rounded-xl skeleton" />
+            <div className="flex-1 h-14 rounded-xl skeleton" />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl skeleton skeleton-card p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl skeleton skeleton-avatar" />
+              <div className="flex-1">
+                <div className="h-4 w-24 rounded skeleton mb-1" />
+                <div className="h-3 w-16 rounded skeleton" />
+              </div>
+              <div className="h-5 w-16 rounded skeleton" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

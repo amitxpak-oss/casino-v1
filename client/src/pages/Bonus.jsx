@@ -10,6 +10,33 @@ const Bonus = () => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
 
+  if (!user) {
+    return (
+      <div className="w-full max-w-[600px] mx-auto">
+        <div className="mb-8">
+          <div className="h-10 w-40 rounded-lg skeleton mb-2" />
+          <div className="h-5 w-48 rounded skeleton" />
+        </div>
+
+        <div className="rounded-3xl skeleton skeleton-card p-8 mb-6">
+          <div className="h-4 w-32 rounded skeleton mb-4" />
+          <div className="h-14 rounded-xl skeleton mb-4" />
+          <div className="h-12 rounded-xl skeleton" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-2xl skeleton skeleton-card p-4">
+              <div className="h-5 w-20 rounded skeleton mb-2" />
+              <div className="h-8 w-full rounded skeleton mb-2" />
+              <div className="h-3 w-24 rounded skeleton" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const handleApply = async (e) => {
     e.preventDefault();
     

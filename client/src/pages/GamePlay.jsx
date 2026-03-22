@@ -150,8 +150,39 @@ const GamePlay = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="w-14 h-14 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
+      <div className="w-full max-w-[600px] mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl skeleton" />
+          <div>
+            <div className="h-6 w-32 rounded skeleton mb-2" />
+            <div className="h-4 w-48 rounded skeleton" />
+          </div>
+        </div>
+
+        <div className="rounded-3xl skeleton skeleton-card p-8 mb-6">
+          <div className="w-24 h-24 mx-auto rounded-full skeleton skeleton-avatar mb-6" />
+          <div className="h-14 w-48 mx-auto rounded-lg skeleton mb-4" />
+          <div className="h-4 w-32 mx-auto rounded skeleton mb-6" />
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 rounded-xl skeleton" />
+            ))}
+          </div>
+          <div className="h-14 rounded-xl skeleton" />
+        </div>
+
+        <div className="space-y-3">
+          <div className="h-4 w-24 rounded skeleton mb-4" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-xl skeleton skeleton-card p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl skeleton" />
+              <div className="flex-1">
+                <div className="h-4 w-24 rounded skeleton mb-1" />
+                <div className="h-3 w-16 rounded skeleton" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

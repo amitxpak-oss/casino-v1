@@ -53,8 +53,23 @@ const Achievements = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="w-12 h-12 border-3 border-primary/10 border-t-primary rounded-full animate-spin" />
+      <div className="w-full max-w-[1400px] mx-auto">
+        <div className="mb-6 sm:mb-8">
+          <div className="h-10 w-40 rounded-lg skeleton mb-2" />
+          <div className="h-5 w-32 rounded skeleton" />
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="rounded-2xl skeleton skeleton-card p-5 text-center">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl skeleton" />
+              <div className="h-5 w-24 mx-auto rounded skeleton mb-2" />
+              <div className="h-3 w-32 mx-auto rounded skeleton mb-3" />
+              <div className="h-2 w-full rounded-full skeleton mb-2" />
+              <div className="h-4 w-16 mx-auto rounded skeleton" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

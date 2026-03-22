@@ -86,6 +86,39 @@ const Withdraw = () => {
     visible: { opacity: 1, y: 0 }
   };
 
+  if (!user) {
+    return (
+      <div className="w-full max-w-[1400px] mx-auto">
+        <div className="mb-6 sm:mb-7">
+          <div className="h-10 w-32 rounded-lg skeleton mb-2" />
+          <div className="h-5 w-40 rounded skeleton" />
+        </div>
+
+        <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 skeleton skeleton-card mb-6">
+          <div className="h-10 w-32 rounded skeleton mb-3" />
+          <div className="h-14 w-48 rounded-lg skeleton mb-3" />
+          <div className="flex gap-6">
+            <div className="h-4 w-16 rounded skeleton" />
+            <div className="h-4 w-20 rounded skeleton" />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-xl skeleton skeleton-card p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl skeleton" />
+              <div className="flex-1">
+                <div className="h-4 w-32 rounded skeleton mb-1" />
+                <div className="h-3 w-24 rounded skeleton" />
+              </div>
+              <div className="h-5 w-20 rounded skeleton" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div className="flex items-center justify-between mb-6 sm:mb-7">

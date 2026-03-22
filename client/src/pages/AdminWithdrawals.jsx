@@ -131,8 +131,11 @@ const AdminWithdrawals = () => {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="rounded-xl bg-gray-800/50 border border-white/10 p-4 animate-pulse">
-              <div className="flex justify-between"><div className="h-4 w-32 bg-gray-700/50 rounded" /><div className="h-4 w-20 bg-gray-700/50 rounded" /></div>
+            <div key={i} className="rounded-xl skeleton skeleton-card skeleton-glow p-4">
+              <div className="flex justify-between items-center">
+                <div className="h-4 w-32 rounded skeleton" />
+                <div className="h-4 w-20 rounded skeleton" />
+              </div>
             </div>
           ))}
         </div>
