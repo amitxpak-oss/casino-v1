@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, Phone, User, Eye, EyeOff, Trophy, UserPlus, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useAuthModal } from '../context/AuthModalContext';
 import toast from 'react-hot-toast';
 
 const AuthModal = () => {
+  const navigate = useNavigate();
   const { login, loginPhone, register } = useAuth();
   const { isOpen, mode, closeModal, switchMode } = useAuthModal();
   const [showPassword, setShowPassword] = useState(false);
@@ -58,6 +60,7 @@ const AuthModal = () => {
       }
       toast.success('Welcome back!');
       closeModal();
+      navigate('/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Login failed');
     } finally {
@@ -98,6 +101,7 @@ const AuthModal = () => {
       await register(data);
       toast.success('Account created successfully!');
       closeModal();
+      navigate('/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Registration failed');
     } finally {

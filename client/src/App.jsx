@@ -51,6 +51,30 @@ const ProtectedRoute = ({ children, adminOnly = false, title, message }) => {
   return children;
 };
 
+const HomeRedirect = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: '#0a0a14'
+      }}>
+        <div className="loading-spinner" />
+      </div>
+    );
+  }
+  
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
@@ -79,7 +103,11 @@ function AppRoutes() {
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={
+          <HomeRedirect>
+            <Home />
+          </HomeRedirect>
+        } />
         
         <Route path="/dashboard" element={
           <ProtectedRoute title="Welcome Back!" message="Sign in to access your dashboard and continue winning">
