@@ -10,9 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@nanowiz/ludo.js": "^1.0.0",
     "axios": "^1.13.6",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
+    "phaser": "^3.90.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hot-toast": "^2.6.0",

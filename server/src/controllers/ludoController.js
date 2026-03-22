@@ -2,33 +2,57 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const SAFE_ZONES = [0, 8, 13, 21, 26, 34, 39, 47];
-const HOME_POSITION = 52;
-const START_POSITIONS = { USER: 1, AI: 27 };
+const SAFE_ZONES = [0, 6, 13, 19];
+const HOME_POSITION = 14;
+const HOME_PATH_LENGTH = 4;
+
+// Blue travels clockwise from start
+const BLUE_TRACK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+// Red travels counter-clockwise from opposite start
+const RED_TRACK = [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
 
 const initializeBoard = () => ({
-  USER: [{ position: -1, finished: false }, { position: -1, finished: false }, { position: -1, finished: false }, { position: -1, finished: false }],
-  AI: [{ position: -1, finished: false }, { position: -1, finished: false }, { position: -1, finished: false }, { position: -1, finished: false }],
+  USER: [
+    { position: -1, finished: false },
+    { position: -1, finished: false },
+    { position: -1, finished: false },
+    { position: -1, finished: false }
+  ],
+  AI: [
+    { position: -1, finished: false },
+    { position: -1, finished: false },
+    { position: -1, finished: false },
+    { position: -1, finished: false }
+  ],
   currentTurn: 'USER',
   diceValue: 0,
+  lastDice: 0,
   gameOver: false,
-  winner: null,
-  moveHistory: []
+  winner: null
 });
 
 const getValidMoves = (board, player, diceValue) => {
   const validMoves = [];
+  const tokens = board[player];
+  
   for (let i = 0; i < 4; i++) {
-    const token = board[player][i];
+    const token = tokens[i];
     if (token.finished) continue;
     
+    // Token in home - needs 6 to come out
     if (token.position === -1) {
       if (diceValue === 6) validMoves.push(i);
-    } else {
+    } 
+    // Token on track - can move forward
+    else {
       const newPos = token.position + diceValue;
-      if (newPos <= HOME_POSITION) validMoves.push(i);
+      // Can enter home path (positions 14-17)
+      if (newPos <= HOME_POSITION + HOME_PATH_LENGTH) {
+        validMoves.push(i);
+      }
     }
   }
+  
   return validMoves;
 };
 
@@ -36,9 +60,10 @@ const moveToken = (board, player, tokenIndex, diceValue) => {
   const tokens = board[player];
   const token = tokens[tokenIndex];
   
+  // Bring token out of home
   if (token.position === -1) {
     if (diceValue === 6) {
-      token.position = START_POSITIONS[player];
+      token.position = 0; // Start position on track
       return { moved: true, killed: false, finished: false };
     }
     return { moved: false };
@@ -46,26 +71,31 @@ const moveToken = (board, player, tokenIndex, diceValue) => {
   
   const newPos = token.position + diceValue;
   
-  if (newPos === HOME_POSITION) {
-    token.position = HOME_POSITION;
+  // Token reaches home
+  if (newPos === HOME_POSITION + HOME_PATH_LENGTH) {
+    token.position = newPos;
     token.finished = true;
     return { moved: true, killed: false, finished: true };
   }
   
-  if (newPos > HOME_POSITION) {
+  // Token goes past home - can't move
+  if (newPos > HOME_POSITION + HOME_PATH_LENGTH) {
     return { moved: false };
   }
   
+  // Check for captures
   let killed = false;
   const oppositePlayer = player === 'USER' ? 'AI' : 'USER';
   const oppositeTokens = board[oppositePlayer];
   
-  for (let i = 0; i < 4; i++) {
-    const oppToken = oppositeTokens[i];
-    if (oppToken.position !== -1 && !oppToken.finished && oppToken.position === newPos) {
-      if (!SAFE_ZONES.includes(newPos)) {
-        oppToken.position = -1;
+  // Only check for captures on main track (positions 0-13)
+  if (newPos <= HOME_POSITION && !SAFE_ZONES.includes(newPos)) {
+    for (let i = 0; i < 4; i++) {
+      const oppToken = oppositeTokens[i];
+      if (oppToken.position !== -1 && !oppToken.finished && oppToken.position === newPos) {
+        oppToken.position = -1; // Send to home
         killed = true;
+        break;
       }
     }
   }
@@ -78,53 +108,6 @@ const checkWin = (board, player) => {
   return board[player].every(token => token.finished);
 };
 
-const getAIMove = (board, difficulty) => {
-  const validMoves = getValidMoves(board, 'AI', board.lastDice);
-  if (validMoves.length === 0) return null;
-  if (validMoves.length === 1) return validMoves[0];
-  
-  let bestMove = validMoves[0];
-  let bestScore = -1;
-  
-  for (const move of validMoves) {
-    let score = 0;
-    const token = board.AI[move];
-    
-    if (token.position === -1) {
-      score += 50;
-    } else {
-      const newPos = token.position + board.lastDice;
-      if (newPos === HOME_POSITION) {
-        score += 100;
-      }
-      if (SAFE_ZONES.includes(newPos)) {
-        score += 30;
-      }
-      
-      const userTokens = board.USER;
-      for (let i = 0; i < 4; i++) {
-        const oppToken = userTokens[i];
-        if (oppToken.position === newPos && !SAFE_ZONES.includes(newPos) && oppToken.position !== -1) {
-          score += 80;
-        }
-      }
-      
-      if (token.position > 40) score += 20;
-    }
-    
-    if (difficulty === 'MEDIUM') {
-      score += Math.random() * 10;
-    }
-    
-    if (score > bestScore) {
-      bestScore = score;
-      bestMove = move;
-    }
-  }
-  
-  return bestMove;
-};
-
 export async function startGame(req, res) {
   try {
     const userId = req.user.id;
@@ -134,11 +117,8 @@ export async function startGame(req, res) {
       return res.status(400).json({ error: 'Invalid bet amount' });
     }
     
-    const minBet = 10;
-    const maxBet = 10000;
-    
-    if (betAmount < minBet || betAmount > maxBet) {
-      return res.status(400).json({ error: `Bet amount must be between ${minBet} and ${maxBet}` });
+    if (betAmount < 10 || betAmount > 10000) {
+      return res.status(400).json({ error: 'Bet amount must be between 10 and 10000' });
     }
     
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -169,7 +149,7 @@ export async function startGame(req, res) {
         amount: -betAmount,
         balanceBefore: user.balance,
         balanceAfter: newBalance,
-        remark: `Ludo game bet of ${betAmount} coins`
+        remark: `Ludo bet of ${betAmount} coins`
       }
     });
     
@@ -191,20 +171,13 @@ export async function startGame(req, res) {
         difficulty: game.difficulty,
         status: game.status,
         board,
-        currentTurn: 'USER',
-        userBalance: newBalance
+        currentTurn: 'USER'
       }
     });
     
   } catch (error) {
     console.error('Start game error:', error);
-    console.error('Error name:', error.name);
-    console.error('Error code:', error.code);
-    res.status(500).json({ 
-      error: 'Failed to start game', 
-      details: error.message,
-      code: error.code 
-    });
+    res.status(500).json({ error: 'Failed to start game', details: error.message });
   }
 }
 
@@ -236,6 +209,41 @@ export async function rollDice(req, res) {
     board.lastDice = diceValue;
     
     const validMoves = getValidMoves(board, 'USER', diceValue);
+    
+    if (validMoves.length === 0) {
+      if (diceValue === 6) {
+        await prisma.ludoGame.update({
+          where: { id: gameId },
+          data: { gameState: JSON.stringify(board) }
+        });
+        
+        return res.json({
+          success: true,
+          diceValue,
+          validMoves: [],
+          canMove: false,
+          needsReroll: true,
+          message: 'Rolled 6 but no valid moves - roll again'
+        });
+      }
+      
+      board.currentTurn = 'AI';
+      board.diceValue = 0;
+      
+      await prisma.ludoGame.update({
+        where: { id: gameId },
+        data: { gameState: JSON.stringify(board), playerTurn: 'AI' }
+      });
+      
+      return res.json({
+        success: true,
+        diceValue,
+        validMoves: [],
+        canMove: false,
+        nextTurn: 'AI',
+        turnSwitched: true
+      });
+    }
     
     await prisma.ludoGame.update({
       where: { id: gameId },
@@ -291,8 +299,12 @@ export async function makeMove(req, res) {
     }
     
     const moveResult = moveToken(board, 'USER', tokenIndex, board.diceValue);
-    board.moveHistory.push({ player: 'USER', token: tokenIndex, result: moveResult });
     
+    if (!moveResult.moved) {
+      return res.status(400).json({ error: 'Cannot move token' });
+    }
+    
+    // Check for win
     const userWon = checkWin(board, 'USER');
     if (userWon) {
       board.gameOver = true;
@@ -317,7 +329,7 @@ export async function makeMove(req, res) {
           amount: reward,
           balanceBefore: currentUser.balance,
           balanceAfter: currentUser.balance + reward,
-          remark: `Ludo game win - ${reward} coins`
+          remark: `Ludo win - ${reward} coins`
         }
       });
       
@@ -341,7 +353,8 @@ export async function makeMove(req, res) {
       });
     }
     
-    if (board.diceValue === 6) {
+    // Check for extra turn (rolled 6)
+    if (board.lastDice === 6) {
       board.currentTurn = 'USER';
       board.diceValue = 0;
     } else {
@@ -351,7 +364,7 @@ export async function makeMove(req, res) {
     
     await prisma.ludoGame.update({
       where: { id: gameId },
-      data: { gameState: JSON.stringify(board), playerTurn: 'AI' }
+      data: { gameState: JSON.stringify(board), playerTurn: board.currentTurn }
     });
     
     res.json({
@@ -359,7 +372,7 @@ export async function makeMove(req, res) {
       moveResult,
       board,
       nextTurn: board.currentTurn,
-      needsReroll: board.diceValue === 0 && board.currentTurn === 'USER'
+      needsReroll: board.lastDice === 6
     });
     
   } catch (error) {
@@ -425,6 +438,7 @@ export async function aiTurn(req, res) {
       return res.status(400).json({ error: 'Not AI turn' });
     }
     
+    // Simulate AI thinking
     await new Promise(resolve => setTimeout(resolve, 800));
     
     const diceValue = Math.floor(Math.random() * 6) + 1;
@@ -433,6 +447,7 @@ export async function aiTurn(req, res) {
     
     const validMoves = getValidMoves(board, 'AI', diceValue);
     
+    // No valid moves - skip turn
     if (validMoves.length === 0) {
       board.currentTurn = 'USER';
       board.diceValue = 0;
@@ -451,12 +466,13 @@ export async function aiTurn(req, res) {
       });
     }
     
+    // AI makes random move
     await new Promise(resolve => setTimeout(resolve, 600));
     
-    const aiMove = getAIMove(board, game.difficulty);
-    const moveResult = moveToken(board, 'AI', aiMove, diceValue);
-    board.moveHistory.push({ player: 'AI', token: aiMove, result: moveResult });
+    const moveIndex = validMoves[Math.floor(Math.random() * validMoves.length)];
+    const moveResult = moveToken(board, 'AI', moveIndex, diceValue);
     
+    // Check for AI win
     const aiWon = checkWin(board, 'AI');
     if (aiWon) {
       board.gameOver = true;
@@ -483,6 +499,7 @@ export async function aiTurn(req, res) {
       });
     }
     
+    // Check for extra turn
     if (diceValue === 6) {
       board.currentTurn = 'AI';
       board.diceValue = 0;
@@ -536,8 +553,7 @@ export async function getGameState(req, res) {
         userWin: game.userWin,
         reward: game.reward,
         board,
-        currentTurn: board.currentTurn,
-        createdAt: game.createdAt
+        currentTurn: board.currentTurn
       }
     });
     
