@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "node --watch server.js",
     "start": "node server.js",
+    "ping": "node keepAlive.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -22,6 +23,7 @@
     "express-validator": "^7.0.1",
     "google-auth-library": "^9.6.3",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
