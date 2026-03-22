@@ -3,6 +3,7 @@ import { startTransition, StrictMode } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthModalProvider } from './context/AuthModalContext';
+import { SocketProvider } from './context/SocketContext';
 import AppLayout from './components/AppLayout';
 import AuthModal from './components/AuthModal';
 import LoginRequired from './components/LoginRequired';
@@ -21,6 +22,7 @@ import AdminUsers from './pages/AdminUsers';
 import AdminWithdrawals from './pages/AdminWithdrawals';
 import AdminSubadmins from './pages/AdminSubadmins';
 import AdminBonusCodes from './pages/AdminBonusCodes';
+import AdminBroadcast from './pages/AdminBroadcast';
 import GamePlay from './pages/GamePlay';
 import Deposit from './pages/Deposit';
 import Referral from './pages/Referral';
@@ -214,6 +216,14 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         
+        <Route path="/dashboard/admin/broadcast" element={
+          <ProtectedRoute title="Super Admin Only" message="Only Super Admins can send broadcasts">
+            <AdminRoute>
+              <AdminBroadcast />
+            </AdminRoute>
+          </ProtectedRoute>
+        } />
+        
         <Route path="/dashboard/games/:id" element={
           <ProtectedRoute title="Start Playing" message="Login to play this game and win exciting rewards">
             <GamePlay />
@@ -236,26 +246,28 @@ function App() {
     >
       <AuthProvider>
         <AuthModalProvider>
-          <AppRoutes />
-          <AuthModal />
-          <Toaster 
-            position="top-center"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#13131f',
-                color: '#fff',
-                border: '1px solid #2d2d4a',
-                borderRadius: '12px',
-              },
-              success: {
-                iconTheme: { primary: '#10b981', secondary: '#fff' },
-              },
-              error: {
-                iconTheme: { primary: '#ef4444', secondary: '#fff' },
-              },
-            }}
-          />
+          <SocketProvider>
+            <AppRoutes />
+            <AuthModal />
+            <Toaster 
+              position="top-center"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: '#13131f',
+                  color: '#fff',
+                  border: '1px solid #2d2d4a',
+                  borderRadius: '12px',
+                },
+                success: {
+                  iconTheme: { primary: '#10b981', secondary: '#fff' },
+                },
+                error: {
+                  iconTheme: { primary: '#ef4444', secondary: '#fff' },
+                },
+              }}
+            />
+          </SocketProvider>
         </AuthModalProvider>
       </AuthProvider>
     </BrowserRouter>

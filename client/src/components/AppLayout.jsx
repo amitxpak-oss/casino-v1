@@ -1,9 +1,9 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Gamepad2, Wallet, User, Trophy, Bell, Gift, Medal, Zap, LogOut, Crown, Sparkles, Shield, Users, DollarSign, Settings, LayoutDashboard, BarChart3, CreditCard, AlertCircle, Coins, Share2, Tag } from 'lucide-react';
+import { Home, Gamepad2, Wallet, User, Trophy, Bell, Gift, Medal, Zap, LogOut, Crown, Sparkles, Shield, Users, DollarSign, Settings, LayoutDashboard, BarChart3, CreditCard, AlertCircle, Coins, Share2, Tag, Megaphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useAuthModal } from '../context/AuthModalContext';
-import { notificationService } from '../services/api';
+import NotificationBell from './NotificationBell';
 import { useState, useEffect } from 'react';
 
 const AppLayout = ({ children }) => {
@@ -11,24 +11,8 @@ const AppLayout = ({ children }) => {
   const { openLogin } = useAuthModal();
   const navigate = useNavigate();
   const location = useLocation();
-  const [unreadCount, setUnreadCount] = useState(0);
 
   const isAdmin = user?.role === 'SUB_ADMIN' || user?.role === 'SUPER_ADMIN';
-
-  useEffect(() => {
-    if (user) {
-      fetchUnreadCount();
-    }
-  }, [user]);
-
-  const fetchUnreadCount = async () => {
-    try {
-      const response = await notificationService.getUnreadCount();
-      setUnreadCount(response.data.count);
-    } catch (error) {
-      console.error('Failed to fetch unread count');
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -81,7 +65,8 @@ const AppLayout = ({ children }) => {
             { path: '/dashboard/admin/withdrawals', icon: DollarSign, label: 'Withdrawals', exact: true },
             ...(user?.role === 'SUPER_ADMIN' ? [
               { path: '/dashboard/admin/subadmins', icon: Shield, label: 'Sub-Admins' },
-              { path: '/dashboard/admin/bonus-codes', icon: Tag, label: 'Bonus Codes' }
+              { path: '/dashboard/admin/bonus-codes', icon: Tag, label: 'Bonus Codes' },
+              { path: '/dashboard/admin/broadcast', icon: Megaphone, label: 'Broadcast' }
             ] : []),
           ].map((item) => (
           <motion.div key={item.path} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}>
@@ -217,7 +202,6 @@ const AppLayout = ({ children }) => {
           { path: '/dashboard/referral', icon: Share2, label: 'Refer & Earn' },
           { path: '/dashboard/withdraw', icon: Zap, label: 'Withdraw' },
           { path: '/dashboard/achievements', icon: Trophy, label: 'Achievements' },
-          { path: '/dashboard/notifications', icon: Bell, label: 'Notifications', badge: unreadCount },
         ].map((item) => (
           <motion.div key={item.path} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}>
             <NavLink
@@ -397,16 +381,7 @@ const AppLayout = ({ children }) => {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <NavLink to="/dashboard/notifications" className="relative w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-text-secondary no-underline transition-all duration-300 hover:bg-primary/10 hover:text-primary hover:border-primary/30 group">
-                    <Bell size={20} className="group-hover:scale-110 transition-transform" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-danger text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-danger/30 animate-pulse">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </span>
-                    )}
-                  </NavLink>
-                </motion.div>
+                <NotificationBell />
                 <motion.div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-base cursor-pointer shadow-lg transition-all duration-300 hover:scale-105 ${isAdmin ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/20' : 'bg-gradient-to-br from-primary to-neon-purple shadow-primary/20'}`}
                   whileHover={{ scale: 1.05 }}

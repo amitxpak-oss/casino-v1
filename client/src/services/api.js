@@ -141,9 +141,20 @@ export const notificationService = {
   deleteAll: () => api.delete('/notifications'),
 };
 
+export const broadcastService = {
+  getAll: () => api.get('/broadcast'),
+  getUnreadCount: () => api.get('/broadcast/unread-count'),
+  markRead: (id) => api.patch(`/broadcast/${id}/read`),
+  markAllRead: () => api.patch('/broadcast/read-all'),
+  send: (data) => api.post('/admin/notify', data),
+  getAllBroadcasts: () => api.get('/admin/broadcasts'),
+};
+
 export const adminService = {
   createSubadmin: (data) => api.post('/admin/create-subadmin', data),
   getStats: () => api.get('/admin/stats'),
+  sendBroadcast: (data) => api.post('/admin/notify', data),
+  getBroadcasts: () => api.get('/admin/broadcasts'),
 };
 
 export default api;

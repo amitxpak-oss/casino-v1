@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import http from 'http';
+import { Server } from 'socket.io';
 import config from './src/config/index.js';
 import authRoutes from './src/routes/auth.js';
 import userRoutes from './src/routes/user.js';
@@ -15,12 +17,17 @@ import gameRoutes from './src/routes/game.js';
 import depositRoutes from './src/routes/deposit.js';
 import bonusRoutes from './src/routes/bonus.js';
 import referralRoutes from './src/routes/referral.js';
+import broadcastRoutes from './src/routes/broadcast.js';
 import { PrismaClient } from '@prisma/client';
 import { depositService } from './src/services/depositService.js';
 import { bonusService } from './src/services/bonusService.js';
+import { initializeSocket } from './src/services/socketService.js';
 
 const prisma = new PrismaClient();
 const app = express();
+const server = http.createServer(app);
+
+const io = initializeSocket(server);
 
 app.use(cors({
   origin: function(origin, callback) {
@@ -56,6 +63,7 @@ app.use('/api/game', gameRoutes);
 app.use('/api/deposit', depositRoutes);
 app.use('/api/bonus', bonusRoutes);
 app.use('/api/referral', referralRoutes);
+app.use('/api/broadcast', broadcastRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -156,10 +164,11 @@ async function main() {
   await createSuperAdmin();
   await seedData();
   
-  app.listen(config.port, () => {
+  server.listen(config.port, () => {
     console.log(`\n🚀 IndiaPlay Backend running on port ${config.port}`);
     console.log(`📦 Environment: ${config.nodeEnv}`);
     console.log(`🔗 API: http://localhost:${config.port}/api`);
+    console.log(`🔌 Socket.io: enabled`);
     console.log(`📚 API Endpoints:`);
     console.log(`   Auth: /api/auth/register, /login, /login/phone, /google`);
     console.log(`   User: /api/user/me, /all`);
@@ -173,7 +182,8 @@ async function main() {
     console.log(`   Deposit: /api/deposit/plans, /purchase`);
     console.log(`   Bonus: /api/bonus/apply, /create`);
     console.log(`   Referral: /api/referral/code, /list, /history`);
-    console.log(`   Notifications: /api/notifications, /unread-count\n`);
+    console.log(`   Notifications: /api/notifications, /unread-count`);
+    console.log(`   Broadcast: /api/broadcast, /admin/notify (SUPER_ADMIN only)\n`);
   });
 }
 
