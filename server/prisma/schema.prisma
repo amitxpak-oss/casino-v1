@@ -71,6 +71,22 @@ enum BonusStatus {
   EXPIRED
 }
 
+enum CoinTransactionType {
+  DEPOSIT
+  GAME_WIN
+  GAME_LOSS
+  BONUS
+  REFERRAL_BONUS
+  WITHDRAWAL
+  PROMO
+}
+
+enum GameResult {
+  WIN
+  LOSS
+  DRAW
+}
+
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -88,6 +104,8 @@ model User {
   referredBy   String?
   streak       Int     @default(0)
   lastLoginAt  DateTime?
+  totalDeposited Float  @default(0)
+  totalWithdrawn Float  @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -99,6 +117,11 @@ model User {
   bonusClaims       BonusClaim[]
   referredByUser    User?              @relation("Referral", fields: [referredBy], references: [id])
   referrals         User[]             @relation("Referral")
+  gameHistories     GameHistory[]
+  coinTransactions  CoinTransaction[]
+  referralRewards    ReferralReward[]   @relation("ReferrerRewards")
+  referredRewards    ReferralReward[]   @relation("ReferredRewards")
+  usedBonusCodes    UsedBonusCode[]
 
   @@map("users")
 }
@@ -309,4 +332,102 @@ model Leaderboard {
   @@unique([userId, period])
 
   @@map("leaderboard")
+}
+
+model GameHistory {
+  id          String     @id @default(uuid())
+  userId      String
+  gameName    String
+  gameId      String?
+  betAmount   Float
+  result      GameResult
+  winAmount   Float      @default(0)
+  multiplier  Float      @default(1)
+  selection   String?
+  createdAt   DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("game_history")
+}
+
+model CoinTransaction {
+  id          String            @id @default(uuid())
+  userId      String
+  type        CoinTransactionType
+  amount      Float
+  balanceBefore Float
+  balanceAfter  Float
+  remark      String?
+  referenceId String?
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("coin_transactions")
+}
+
+model BonusCode {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  coinAmount   Float
+  discountPercent Float  @default(0)
+  description  String
+  isActive     Boolean   @default(true)
+  maxUses      Int?
+  usedCount    Int       @default(0)
+  minDeposit   Float?
+  startsAt     DateTime?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  createdBy    String?
+
+  usedCodes    UsedBonusCode[]
+
+  @@map("bonus_codes")
+}
+
+model UsedBonusCode {
+  id          String    @id @default(uuid())
+  userId      String
+  bonusCodeId String
+  coinsAwarded Float
+  createdAt   DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bonusCode BonusCode @relation(fields: [bonusCodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bonusCodeId])
+  @@map("used_bonus_codes")
+}
+
+model ReferralReward {
+  id           String    @id @default(uuid())
+  referrerId   String
+  referredId   String
+  type         String
+  amount       Float
+  createdAt    DateTime  @default(now())
+
+  referrer User @relation("ReferrerRewards", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("ReferredRewards", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@map("referral_rewards")
+}
+
+model DepositPlan {
+  id          String   @id @default(uuid())
+  name        String
+  rupees      Float
+  coins       Float
+  bonus       Float    @default(0)
+  isPopular   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("deposit_plans")
 }

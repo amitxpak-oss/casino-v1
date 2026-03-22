@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const AuthModal = () => {
   const navigate = useNavigate();
-  const { login, loginPhone, register } = useAuth();
+  const { login, loginPhone, register, user } = useAuth();
   const { isOpen, mode, closeModal, switchMode } = useAuthModal();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -53,14 +53,21 @@ const AuthModal = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      let result;
       if (isPhone) {
-        await loginPhone(formData.phone, formData.password);
+        result = await loginPhone(formData.phone, formData.password);
       } else {
-        await login(formData.email, formData.password);
+        result = await login(formData.email, formData.password);
       }
       toast.success('Welcome back!');
       closeModal();
-      navigate('/dashboard');
+      
+      const userRole = result?.user?.role;
+      if (userRole === 'SUPER_ADMIN' || userRole === 'SUB_ADMIN') {
+        navigate('/dashboard/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Login failed');
     } finally {
@@ -98,10 +105,16 @@ const AuthModal = () => {
         data.referralCode = formData.referralCode;
       }
       
-      await register(data);
+      const result = await register(data);
       toast.success('Account created successfully!');
       closeModal();
-      navigate('/dashboard');
+      
+      const userRole = result?.user?.role;
+      if (userRole === 'SUPER_ADMIN' || userRole === 'SUB_ADMIN') {
+        navigate('/dashboard/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Registration failed');
     } finally {

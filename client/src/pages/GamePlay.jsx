@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Coins, Trophy, Target, Flame, Play, RotateCcw, ChevronUp, ChevronDown, X, Check } from 'lucide-react';
+import { ArrowLeft, Coins, Trophy, Target, Flame, Play, RotateCcw, ChevronUp, ChevronDown, X, Check, History, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { gameService } from '../services/api';
+import { gameService, coinGameService } from '../services/api';
 import toast from 'react-hot-toast';
 
 const COLORS = ['red', 'green', 'blue'];
@@ -22,9 +22,12 @@ const GamePlay = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [history, setHistory] = useState([]);
   const [balance, setBalance] = useState(user?.balance || 0);
+  const [gameHistory, setGameHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     fetchGame();
+    fetchGameHistory();
     setBalance(user?.balance || 0);
   }, [id]);
 
@@ -38,6 +41,15 @@ const GamePlay = () => {
       navigate('/dashboard/games');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGameHistory = async () => {
+    try {
+      const response = await coinGameService.getHistory({ limit: 20 });
+      setGameHistory(response.data.history || []);
+    } catch (error) {
+      console.error('Failed to fetch game history:', error);
     }
   };
 
@@ -69,83 +81,57 @@ const GamePlay = () => {
     }, 1500);
   };
 
-  const playGame = () => {
-    let result;
-    let winAmount = 0;
-    let isWin = false;
+  const playGame = async () => {
+    try {
+      const response = await coinGameService.play({
+        gameName: game.name,
+        gameId: game.id,
+        betAmount,
+        selection: selectedOption,
+        multiplier: getMultiplier()
+      });
 
+      const result = response.data;
+      setBalance(result.newBalance);
+      
+      setGameResult({
+        type: 'number',
+        value: result.result === 'WIN' ? 'WIN' : 'LOSS',
+        isWin: result.result === 'WIN',
+        winAmount: result.winAmount,
+        betAmount
+      });
+
+      updateUser({ balance: result.newBalance });
+      fetchUser();
+      fetchGameHistory();
+
+      if (result.result === 'WIN') {
+        toast.success(`You won ${formatCurrency(result.winAmount)}!`);
+      }
+
+      setHistory(prev => [{
+        result: result.result,
+        winAmount: result.winAmount,
+        betAmount,
+        timestamp: new Date()
+      }, ...prev.slice(0, 9)]);
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to play game');
+    } finally {
+      setIsPlaying(false);
+      setSelectedOption(null);
+    }
+  };
+
+  const getMultiplier = () => {
     switch (game?.name) {
-      case 'Colour':
-        const randomColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-        result = { type: 'color', value: randomColor };
-        isWin = selectedOption === randomColor;
-        winAmount = isWin ? betAmount * 3 : 0;
-        break;
-
-      case 'Matka':
-        const randomNum = Math.floor(Math.random() * 10) + 1;
-        result = { type: 'number', value: randomNum };
-        if (selectedOption === 'single') {
-          isWin = randomNum % 2 === 1;
-        } else if (selectedOption === 'double') {
-          isWin = randomNum % 2 === 0;
-        } else {
-          isWin = selectedOption === randomNum.toString();
-        }
-        winAmount = isWin ? betAmount * 9 : 0;
-        break;
-
-      case 'Ludo':
-        const dice1 = Math.floor(Math.random() * 6) + 1;
-        const dice2 = Math.floor(Math.random() * 6) + 1;
-        const total = dice1 + dice2;
-        result = { type: 'dice', value: [dice1, dice2], total };
-        if (selectedOption === 'odd') {
-          isWin = total % 2 === 1;
-        } else if (selectedOption === 'even') {
-          isWin = total % 2 === 0;
-        } else {
-          isWin = selectedOption === total;
-        }
-        winAmount = isWin ? betAmount * 5 : 0;
-        break;
-
-      case 'Aviator':
-        const multiplier = Math.random() * 10 + 1;
-        const cashoutAt = Math.floor(multiplier * 10) / 10;
-        result = { type: 'aviator', value: cashoutAt };
-        const shouldWin = Math.random() > 0.4;
-        if (shouldWin) {
-          isWin = true;
-          winAmount = betAmount * cashoutAt;
-        }
-        break;
-
-      default:
-        const randomVal = Math.floor(Math.random() * 10) + 1;
-        result = { type: 'number', value: randomVal };
-        isWin = Math.random() > 0.5;
-        winAmount = isWin ? betAmount * 2 : 0;
+      case 'Colour': return 3;
+      case 'Matka': return 9;
+      case 'Ludo': return 5;
+      case 'Aviator': return 10;
+      default: return 2;
     }
-
-    const newBalance = isWin ? balance - betAmount + winAmount : balance - betAmount;
-    setBalance(newBalance);
-    setGameResult({ ...result, isWin, winAmount, betAmount });
-    
-    setHistory(prev => [{
-      ...result,
-      isWin,
-      betAmount,
-      timestamp: new Date()
-    }, ...prev.slice(0, 9)]);
-
-    if (isWin) {
-      updateUser({ balance: newBalance });
-      toast.success(`You won ${formatCurrency(winAmount)}!`);
-    }
-
-    setIsPlaying(false);
-    setSelectedOption(null);
   };
 
   const resetGame = () => {
@@ -247,30 +233,13 @@ const GamePlay = () => {
             <div className="p-4 bg-black/20 rounded-xl mb-6">
               <div className="text-sm text-text-muted mb-2">Result</div>
               <div className="text-2xl font-bold">
-                {gameResult.type === 'color' && (
-                  <span className={`px-4 py-2 rounded-xl ${
-                    gameResult.value === 'red' ? 'bg-red-500 text-white' :
-                    gameResult.value === 'green' ? 'bg-green-500 text-white' :
-                    'bg-blue-500 text-white'
-                  }`}>
-                    {gameResult.value.toUpperCase()}
-                  </span>
-                )}
-                {gameResult.type === 'number' && (
-                  <span className="text-5xl">{gameResult.value}</span>
-                )}
-                {gameResult.type === 'dice' && (
-                  <div className="flex items-center justify-center gap-4">
-                    <span className="text-5xl">{gameResult.value[0]}</span>
-                    <span className="text-3xl text-text-muted">+</span>
-                    <span className="text-5xl">{gameResult.value[1]}</span>
-                    <span className="text-3xl text-text-muted">=</span>
-                    <span className="text-5xl text-warning">{gameResult.total}</span>
-                  </div>
-                )}
-                {gameResult.type === 'aviator' && (
-                  <span className="text-warning">{gameResult.value.toFixed(1)}x</span>
-                )}
+                <span className={`px-6 py-3 rounded-xl text-3xl font-black ${
+                  gameResult.isWin 
+                    ? 'bg-success/20 text-success border-2 border-success/30' 
+                    : 'bg-danger/20 text-danger border-2 border-danger/30'
+                }`}>
+                  {gameResult.isWin ? 'WIN' : 'LOSS'}
+                </span>
               </div>
             </div>
 
@@ -451,26 +420,85 @@ const GamePlay = () => {
         )}
       </AnimatePresence>
 
-      {history.length > 0 && (
-        <div className="premium-card rounded-2xl p-4">
-          <h3 className="font-bold mb-4 text-sm text-text-muted">Recent Results</h3>
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {history.map((h, i) => (
-              <div
-                key={i}
-                className={`px-4 py-2 rounded-xl text-sm font-bold shrink-0 ${
-                  h.isWin ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
-                }`}
-              >
-                {h.type === 'color' && h.value?.charAt(0).toUpperCase()}
-                {h.type === 'number' && h.value}
-                {h.type === 'dice' && h.total}
-                {h.type === 'aviator' && `${h.value}x`}
+      <motion.button
+        className="w-full py-3 rounded-2xl font-bold text-sm cursor-pointer bg-white/5 text-text-secondary border border-white/10 transition-all duration-300 flex items-center justify-center gap-2 mb-6"
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setShowHistory(true)}
+      >
+        <History size={18} /> View Game History
+      </motion.button>
+
+      <AnimatePresence>
+        {showHistory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowHistory(false)}
+          >
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-md max-h-[80vh] overflow-y-auto bg-gradient-to-b from-bg-card-hover to-bg-dark border border-white/10 rounded-3xl p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <TrendingUp className="text-primary" /> Game History
+                </h3>
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all"
+                >
+                  <X size={20} />
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+
+              {gameHistory.length === 0 ? (
+                <p className="text-center text-text-muted py-8">No games played yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {gameHistory.map((h) => (
+                    <div
+                      key={h.id}
+                      className={`p-4 rounded-xl border ${
+                        h.result === 'WIN' 
+                          ? 'bg-success/10 border-success/20' 
+                          : 'bg-danger/10 border-danger/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold">{h.gameName}</p>
+                          <p className="text-sm text-text-muted">
+                            {new Date(h.createdAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold ${h.result === 'WIN' ? 'text-success' : 'text-danger'}`}>
+                            {h.result === 'WIN' ? '+' : '-'}{formatCurrency(h.betAmount)}
+                          </p>
+                          {h.result === 'WIN' && (
+                            <p className="text-sm text-success">Won {formatCurrency(h.winAmount)}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

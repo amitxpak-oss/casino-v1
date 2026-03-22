@@ -16,18 +16,24 @@ async function main() {
   
   const user = await prisma.user.upsert({
     where: { email: 'player@example.com' },
-    update: {},
+    update: {
+      balance: 5000,
+      bonusBalance: 500,
+      totalWinnings: 5000,
+      gamesPlayed: 50,
+      gamesWon: 25,
+    },
     create: {
       name: 'Rajesh Kumar',
       email: 'player@example.com',
       phone: '9876543210',
       password: hashedUserPassword,
       role: 'USER',
-      balance: 1000,
-      bonusBalance: 100,
-      totalWinnings: 500,
-      gamesPlayed: 25,
-      gamesWon: 12,
+      balance: 5000,
+      bonusBalance: 500,
+      totalWinnings: 5000,
+      gamesPlayed: 50,
+      gamesWon: 25,
       referralCode: userReferralCode,
       streak: 5
     }
@@ -85,6 +91,43 @@ async function main() {
   console.log(`   Password: super123`);
   console.log(`   Role: SUPER_ADMIN\n`);
 
+  // Create deposit plans
+  const depositPlanCount = await prisma.depositPlan.count();
+  if (depositPlanCount === 0) {
+    await prisma.depositPlan.createMany({
+      data: [
+        { name: 'Starter', rupees: 100, coins: 100, bonus: 0, isPopular: false },
+        { name: 'Basic', rupees: 500, coins: 500, bonus: 25, isPopular: false },
+        { name: 'Premium', rupees: 1000, coins: 1000, bonus: 100, isPopular: true },
+        { name: 'Gold', rupees: 2500, coins: 2500, bonus: 350, isPopular: false },
+        { name: 'Platinum', rupees: 5000, coins: 5000, bonus: 1000, isPopular: false },
+        { name: 'Diamond', rupees: 10000, coins: 10000, bonus: 2500, isPopular: false }
+      ]
+    });
+    console.log('✅ Created Deposit Plans\n');
+  }
+
+  // Create bonus codes
+  const bonusCodeCount = await prisma.bonusCode.count();
+  if (bonusCodeCount === 0) {
+    const now = new Date();
+    const nextWeek = new Date(now);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const nextMonth = new Date(now);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    
+    await prisma.bonusCode.createMany({
+      data: [
+        { code: 'WELCOME50', coinAmount: 50, discountPercent: 0, description: 'Welcome bonus - Get 50 free coins!', maxUses: 1, startsAt: now, expiresAt: nextMonth },
+        { code: 'PLAY100', coinAmount: 100, discountPercent: 0, description: 'Play and win - 100 free coins!', startsAt: now, expiresAt: nextWeek },
+        { code: 'LUCKY200', coinAmount: 200, discountPercent: 0, description: 'Lucky draw - 200 free coins!', startsAt: now, expiresAt: nextWeek },
+        { code: 'VIP500', coinAmount: 500, discountPercent: 10, description: 'VIP bonus - 500 coins + 10% extra!', minDeposit: 1000, startsAt: now, expiresAt: nextMonth },
+        { code: 'FESTIVE1000', coinAmount: 1000, discountPercent: 20, description: 'Festival special - 1000 coins + 20% extra!', minDeposit: 5000, startsAt: now, expiresAt: nextMonth }
+      ]
+    });
+    console.log('✅ Created Bonus Codes\n');
+  }
+
   console.log('═══════════════════════════════════════════');
   console.log('          SEEDING COMPLETE!');
   console.log('═══════════════════════════════════════════');
@@ -93,7 +136,9 @@ async function main() {
   console.log('USER:      player@example.com / user123');
   console.log('SUB_ADMIN: subadmin@indiaplay.com / admin123');
   console.log('SUPER_ADMIN: superadmin@indiaplay.com / super123');
-  console.log('───────────────────────────────────────────\n');
+  console.log('───────────────────────────────────────────');
+  console.log('\nBonus Codes: WELCOME50, PLAY100, LUCKY200, VIP500, FESTIVE1000');
+  console.log('\n');
 }
 
 main()

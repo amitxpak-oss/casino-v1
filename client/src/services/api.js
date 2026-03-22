@@ -106,6 +106,33 @@ export const bonusService = {
   getReferral: () => api.get('/bonuses/referral'),
 };
 
+export const coinGameService = {
+  play: (data) => api.post('/game/play', data),
+  getHistory: (params) => api.get('/game/history', { params }),
+  getStats: () => api.get('/game/stats'),
+};
+
+export const depositPlanService = {
+  getPlans: () => api.get('/deposit/plans'),
+  purchase: (planId) => api.post('/deposit/purchase', { planId }),
+};
+
+export const coinBonusService = {
+  apply: (code) => api.post('/bonus/apply', { code }),
+  create: (data) => api.post('/bonus/create', data),
+  update: (id, data) => api.patch(`/bonus/update/${id}`, data),
+  delete: (id) => api.delete(`/bonus/delete/${id}`),
+  getAll: () => api.get('/bonus/codes'),
+  getActive: () => api.get('/bonus/active'),
+};
+
+export const referralSystemService = {
+  getCode: () => api.get('/referral/code'),
+  reward: (referredId) => api.post('/referral/reward', { referredId }),
+  getHistory: () => api.get('/referral/history'),
+  getList: () => api.get('/referral/list'),
+};
+
 export const notificationService = {
   getAll: (params) => api.get('/notifications', { params }),
   getUnreadCount: () => api.get('/notifications/unread-count'),

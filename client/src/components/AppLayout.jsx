@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Gamepad2, Wallet, User, Trophy, Bell, Gift, Medal, Zap, LogOut, Crown, Sparkles, Shield, Users, DollarSign, Settings, LayoutDashboard, BarChart3, CreditCard, AlertCircle } from 'lucide-react';
+import { Home, Gamepad2, Wallet, User, Trophy, Bell, Gift, Medal, Zap, LogOut, Crown, Sparkles, Shield, Users, DollarSign, Settings, LayoutDashboard, BarChart3, CreditCard, AlertCircle, Coins, Share2, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useAuthModal } from '../context/AuthModalContext';
@@ -75,12 +75,15 @@ const AppLayout = ({ children }) => {
       <nav className="relative z-10 flex-1 p-4 overflow-y-auto scrollbar-hide">
         <div className="text-[10px] font-bold text-amber-400/80 uppercase tracking-[0.2em] px-4 mb-3">Management</div>
         
-        {[
-          { path: '/dashboard/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-          { path: '/dashboard/admin/users', icon: Users, label: 'Users', exact: true },
-          { path: '/dashboard/admin/withdrawals', icon: DollarSign, label: 'Withdrawals', exact: true },
-          ...(user?.role === 'SUPER_ADMIN' ? [{ path: '/dashboard/admin/subadmins', icon: Shield, label: 'Sub-Admins' }] : []),
-        ].map((item) => (
+          {[
+            { path: '/dashboard/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+            { path: '/dashboard/admin/users', icon: Users, label: 'Users', exact: true },
+            { path: '/dashboard/admin/withdrawals', icon: DollarSign, label: 'Withdrawals', exact: true },
+            ...(user?.role === 'SUPER_ADMIN' ? [
+              { path: '/dashboard/admin/subadmins', icon: Shield, label: 'Sub-Admins' },
+              { path: '/dashboard/admin/bonus-codes', icon: Tag, label: 'Bonus Codes' }
+            ] : []),
+          ].map((item) => (
           <motion.div key={item.path} whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}>
             <NavLink
               to={item.path}
@@ -209,7 +212,9 @@ const AppLayout = ({ children }) => {
         <div className="text-[10px] font-bold text-text-muted/60 uppercase tracking-[0.2em] px-4 mt-8 mb-3">More</div>
         
         {[
+          { path: '/dashboard/deposit', icon: Coins, label: 'Buy Coins' },
           { path: '/dashboard/bonus', icon: Gift, label: 'Bonus' },
+          { path: '/dashboard/referral', icon: Share2, label: 'Refer & Earn' },
           { path: '/dashboard/withdraw', icon: Zap, label: 'Withdraw' },
           { path: '/dashboard/achievements', icon: Trophy, label: 'Achievements' },
           { path: '/dashboard/notifications', icon: Bell, label: 'Notifications', badge: unreadCount },

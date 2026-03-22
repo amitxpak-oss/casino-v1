@@ -1,47 +1,77 @@
+import { gameService } from '../services/gameService.js';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export const gameController = {
-  async getAll(req, res) {
+  async playGame(req, res) {
     try {
-      const { category, featured, hot } = req.query;
-      const where = { isActive: true };
+      const userId = req.user.id;
+      const { gameName, gameId, betAmount, selection, multiplier } = req.body;
       
-      if (category) where.category = category;
-      if (featured === 'true') where.isFeatured = true;
-      if (hot === 'true') where.isHot = true;
-
-      const games = await prisma.game.findMany({
-        where,
-        orderBy: [
-          { isFeatured: 'desc' },
-          { players: 'desc' },
-          { name: 'asc' }
-        ]
+      if (!betAmount || betAmount < 1) {
+        return res.status(400).json({ error: 'Minimum bet is 1 coin' });
+      }
+      
+      const result = await gameService.playGame(userId, {
+        gameName,
+        gameId,
+        betAmount: parseFloat(betAmount),
+        selection,
+        multiplier: parseFloat(multiplier) || 2
       });
-
-      res.json({ games });
+      
+      res.json(result);
     } catch (error) {
-      console.error('Get games error:', error);
-      res.status(500).json({ error: 'Failed to fetch games.' });
+      res.status(400).json({ error: error.message });
     }
   },
 
-  async getById(req, res) {
+  async getGameHistory(req, res) {
     try {
-      const game = await prisma.game.findUnique({
-        where: { id: req.params.id }
-      });
-
-      if (!game) {
-        return res.status(404).json({ error: 'Game not found.' });
-      }
-
-      res.json({ game });
+      const userId = req.user.id;
+      const { page = 1, limit = 20 } = req.query;
+      
+      const result = await gameService.getGameHistory(
+        userId,
+        parseInt(page),
+        parseInt(limit)
+      );
+      
+      res.json(result);
     } catch (error) {
-      console.error('Get game error:', error);
-      res.status(500).json({ error: 'Failed to fetch game.' });
+      res.status(400).json({ error: error.message });
+    }
+  },
+
+  async getUserStats(req, res) {
+    try {
+      const userId = req.user.id;
+      const stats = await gameService.getUserStats(userId);
+      res.json(stats);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  },
+
+  async getAll(req, res) {
+    try {
+      const { category, page = 1, limit = 20 } = req.query;
+      const where = category ? { category } : {};
+      
+      const [games, total] = await Promise.all([
+        prisma.game.findMany({
+          where: { ...where, isActive: true },
+          skip: (page - 1) * limit,
+          take: parseInt(limit),
+          orderBy: { featured: 'desc' }
+        }),
+        prisma.game.count({ where: { ...where, isActive: true } })
+      ]);
+      
+      res.json({ games, total, page: parseInt(page), limit: parseInt(limit) });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch games' });
     }
   },
 
@@ -50,75 +80,73 @@ export const gameController = {
       const categories = await prisma.game.groupBy({
         by: ['category'],
         where: { isActive: true },
-        _count: true
+        _count: { id: true }
       });
-
+      
       res.json({ 
-        categories: categories.map(c => ({
-          name: c.category,
-          count: c._count
-        }))
+        categories: categories.map(c => ({ 
+          name: c.category, 
+          count: c._count.id 
+        })) 
       });
     } catch (error) {
-      console.error('Get categories error:', error);
-      res.status(500).json({ error: 'Failed to fetch categories.' });
+      res.status(500).json({ error: 'Failed to fetch categories' });
     }
   },
 
   async getFeatured(req, res) {
     try {
       const games = await prisma.game.findMany({
-        where: { isFeatured: true, isActive: true },
-        take: 5
+        where: { isActive: true, featured: true },
+        take: 10,
+        orderBy: { views: 'desc' }
       });
+      
       res.json({ games });
     } catch (error) {
-      console.error('Get featured error:', error);
-      res.status(500).json({ error: 'Failed to fetch featured games.' });
+      res.status(500).json({ error: 'Failed to fetch featured games' });
+    }
+  },
+
+  async getById(req, res) {
+    try {
+      const game = await prisma.game.findUnique({
+        where: { id: req.params.id }
+      });
+      
+      if (!game) {
+        return res.status(404).json({ error: 'Game not found' });
+      }
+      
+      await prisma.game.update({
+        where: { id: game.id },
+        data: { views: { increment: 1 } }
+      });
+      
+      res.json({ game });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch game' });
     }
   },
 
   async create(req, res) {
     try {
-      const { name, description, category, minBet, maxBet, maxWin, color, image, icon, isHot, isFeatured } = req.body;
-
-      const game = await prisma.game.create({
-        data: {
-          name,
-          description,
-          category,
-          minBet: minBet || 1,
-          maxBet: maxBet || 10000,
-          maxWin: maxWin || 100000,
-          color: color || '#f97316',
-          image,
-          icon: icon || 'Star',
-          isHot: isHot || false,
-          isFeatured: isFeatured || false
-        }
-      });
-
-      res.status(201).json({ message: 'Game created.', game });
+      const game = await prisma.game.create({ data: req.body });
+      res.status(201).json({ game });
     } catch (error) {
-      console.error('Create game error:', error);
-      res.status(500).json({ error: 'Failed to create game.' });
+      res.status(500).json({ error: 'Failed to create game' });
     }
   },
 
   async update(req, res) {
     try {
-      const { id } = req.params;
-      const updates = req.body;
-
       const game = await prisma.game.update({
-        where: { id },
-        data: updates
+        where: { id: req.params.id },
+        data: req.body
       });
-
-      res.json({ message: 'Game updated.', game });
+      res.json({ game });
     } catch (error) {
-      console.error('Update game error:', error);
-      res.status(500).json({ error: 'Failed to update game.' });
+      res.status(500).json({ error: 'Failed to update game' });
     }
   }
 };

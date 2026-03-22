@@ -1,13 +1,12 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middlewares/auth.js';
 import { walletController } from '../controllers/walletController.js';
-import { authenticate, authorize } from '../middlewares/auth.js';
 
 const router = Router();
 
-router.get('/', authenticate, walletController.getBalance);
-router.get('/transactions', authenticate, walletController.getTransactions);
-router.post('/deposit', authenticate, walletController.deposit);
-router.post('/transfer', authenticate, walletController.transferToMain);
-router.post('/add', authenticate, authorize('SUB_ADMIN', 'SUPER_ADMIN'), walletController.addBalance);
+router.get('/', authMiddleware, walletController.getWallet);
+router.get('/transactions', authMiddleware, walletController.getTransactions);
+router.post('/deposit', authMiddleware, walletController.deposit);
+router.post('/transfer', authMiddleware, walletController.transferBonus);
 
 export default router;

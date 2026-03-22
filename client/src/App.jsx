@@ -20,7 +20,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 import AdminWithdrawals from './pages/AdminWithdrawals';
 import AdminSubadmins from './pages/AdminSubadmins';
+import AdminBonusCodes from './pages/AdminBonusCodes';
 import GamePlay from './pages/GamePlay';
+import Deposit from './pages/Deposit';
+import Referral from './pages/Referral';
 
 const ProtectedRoute = ({ children, adminOnly = false, title, message }) => {
   const { user, loading } = useAuth();
@@ -153,6 +156,18 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         
+        <Route path="/dashboard/deposit" element={
+          <ProtectedRoute title="Buy Coins" message="Login to purchase coin packages">
+            <Deposit />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/dashboard/referral" element={
+          <ProtectedRoute title="Refer & Earn" message="Login to invite friends and earn coins">
+            <Referral />
+          </ProtectedRoute>
+        } />
+        
         <Route path="/dashboard/withdraw" element={
           <ProtectedRoute title="Withdraw Your Winnings" message="Login to withdraw your earnings">
             <Withdraw />
@@ -187,6 +202,14 @@ function AppRoutes() {
           <ProtectedRoute title="Super Admin Only" message="Only Super Admins can access this area">
             <AdminRoute>
               <AdminSubadmins />
+            </AdminRoute>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/dashboard/admin/bonus-codes" element={
+          <ProtectedRoute title="Super Admin Only" message="Only Super Admins can manage bonus codes">
+            <AdminRoute>
+              <AdminBonusCodes />
             </AdminRoute>
           </ProtectedRoute>
         } />

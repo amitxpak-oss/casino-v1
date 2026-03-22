@@ -10,11 +10,11 @@ export const leaderboardController = {
           role: 'USER'
         },
         take: 50,
-        orderBy: { totalWinnings: 'desc' },
+        orderBy: { balance: 'desc' },
         select: {
           id: true,
           name: true,
-          totalWinnings: true,
+          balance: true,
           gamesWon: true,
           gamesPlayed: true
         }
@@ -44,11 +44,11 @@ export const leaderboardController = {
           role: 'USER'
         },
         take: parseInt(limit),
-        orderBy: { totalWinnings: 'desc' },
+        orderBy: { balance: 'desc' },
         select: {
           id: true,
           name: true,
-          totalWinnings: true
+          balance: true
         }
       });
 
@@ -65,7 +65,7 @@ export const leaderboardController = {
       
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { totalWinnings: true, role: true }
+        select: { balance: true, role: true }
       });
 
       if (!user) {
@@ -78,7 +78,7 @@ export const leaderboardController = {
       } else {
         rank = await prisma.user.count({
           where: { 
-            totalWinnings: { gt: user.totalWinnings },
+            balance: { gt: user.balance },
             role: 'USER'
           }
         });
@@ -86,7 +86,7 @@ export const leaderboardController = {
 
       res.json({ 
         rank: rank + 1,
-        winnings: user.totalWinnings
+        balance: user.balance
       });
     } catch (error) {
       console.error('Get user rank error:', error);
@@ -98,7 +98,7 @@ export const leaderboardController = {
     try {
       const currentUser = await prisma.user.findUnique({
         where: { id: req.user.id },
-        select: { totalWinnings: true, role: true }
+        select: { balance: true, role: true }
       });
 
       if (!currentUser) {
@@ -114,7 +114,7 @@ export const leaderboardController = {
       } else {
         rank = await prisma.user.count({
           where: { 
-            totalWinnings: { gt: currentUser.totalWinnings },
+            balance: { gt: currentUser.balance },
             role: 'USER'
           }
         });
@@ -124,7 +124,7 @@ export const leaderboardController = {
       res.json({ 
         rank: rank + 1,
         totalUsers,
-        winnings: currentUser.totalWinnings
+        balance: currentUser.balance
       });
     } catch (error) {
       console.error('Get my rank error:', error);

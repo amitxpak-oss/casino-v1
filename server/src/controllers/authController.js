@@ -9,7 +9,7 @@ const googleClient = new OAuth2Client(config.google.clientId);
 export const authController = {
   async register(req, res) {
     try {
-      const { name, email, phone, password } = req.body;
+      const { name, email, phone, password, referralCode } = req.body;
 
       if (!name || !email || !password) {
         return res.status(400).json({ error: 'Name, email and password are required.' });
@@ -31,7 +31,33 @@ export const authController = {
         }
       }
 
-      const user = await userService.create({ name, email, phone, password });
+      let referredById = null;
+      let referralBonusApplied = false;
+      
+      if (referralCode) {
+        const referrer = await userService.findByReferralCode(referralCode);
+        if (referrer && referrer.role === 'USER') {
+          referredById = referrer.id;
+        }
+      }
+
+      const user = await userService.create({ 
+        name, 
+        email, 
+        phone, 
+        password,
+        referralCode: referralCode || undefined
+      });
+
+      if (referredById) {
+        try {
+          const { referralService } = await import('../services/referralService.js');
+          await referralService.applyReferralBonus(referredById, user.id);
+          referralBonusApplied = true;
+        } catch (err) {
+          console.error('Failed to apply referral bonus:', err);
+        }
+      }
 
       const { accessToken, refreshToken } = generateTokens(user);
 
@@ -48,7 +74,8 @@ export const authController = {
           referralCode: user.referralCode
         },
         accessToken,
-        refreshToken
+        refreshToken,
+        referralBonusApplied
       });
     } catch (error) {
       console.error('Register error:', error);

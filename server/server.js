@@ -11,7 +11,13 @@ import leaderboardRoutes from './src/routes/leaderboard.js';
 import achievementsRoutes from './src/routes/achievements.js';
 import bonusesRoutes from './src/routes/bonuses.js';
 import notificationsRoutes from './src/routes/notifications.js';
+import gameRoutes from './src/routes/game.js';
+import depositRoutes from './src/routes/deposit.js';
+import bonusRoutes from './src/routes/bonus.js';
+import referralRoutes from './src/routes/referral.js';
 import { PrismaClient } from '@prisma/client';
+import { depositService } from './src/services/depositService.js';
+import { bonusService } from './src/services/bonusService.js';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -46,6 +52,10 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/achievements', achievementsRoutes);
 app.use('/api/bonuses', bonusesRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/game', gameRoutes);
+app.use('/api/deposit', depositRoutes);
+app.use('/api/bonus', bonusRoutes);
+app.use('/api/referral', referralRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -89,6 +99,9 @@ async function createSuperAdmin() {
 
 async function seedData() {
   try {
+    await depositService.createDefaultPlans();
+    await bonusService.createDefaultBonusCodes();
+    
     const gameCount = await prisma.game.count();
     if (gameCount === 0) {
       await prisma.game.createMany({
@@ -156,6 +169,10 @@ async function main() {
     console.log(`   Leaderboard: /api/leaderboard/monthly, /top`);
     console.log(`   Achievements: /api/achievements, /my`);
     console.log(`   Bonuses: /api/bonuses, /claim, /referral`);
+    console.log(`   Game: /api/game/play, /history, /stats`);
+    console.log(`   Deposit: /api/deposit/plans, /purchase`);
+    console.log(`   Bonus: /api/bonus/apply, /create`);
+    console.log(`   Referral: /api/referral/code, /list, /history`);
     console.log(`   Notifications: /api/notifications, /unread-count\n`);
   });
 }
