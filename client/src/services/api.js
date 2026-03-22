@@ -150,6 +150,17 @@ export const broadcastService = {
   getAllBroadcasts: () => api.get('/admin/broadcasts'),
 };
 
+export const ludoService = {
+  startGame: (data) => api.post('/ludo/start', data),
+  getGameState: (gameId) => api.get(`/ludo/${gameId}`),
+  rollDice: (gameId) => api.post(`/ludo/${gameId}/roll`),
+  makeMove: (gameId, tokenIndex) => api.post(`/ludo/${gameId}/move`, { tokenIndex }),
+  skipTurn: (gameId) => api.post(`/ludo/${gameId}/skip`),
+  aiTurn: (gameId) => api.post(`/ludo/${gameId}/ai-turn`),
+  forfeit: (gameId) => api.post(`/ludo/${gameId}/forfeit`),
+  getHistory: (params) => api.get('/ludo/history', { params }),
+};
+
 export const adminService = {
   createSubadmin: (data) => api.post('/admin/create-subadmin', data),
   getStats: () => api.get('/admin/stats'),

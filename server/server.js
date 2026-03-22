@@ -18,6 +18,7 @@ import depositRoutes from './src/routes/deposit.js';
 import bonusRoutes from './src/routes/bonus.js';
 import referralRoutes from './src/routes/referral.js';
 import broadcastRoutes from './src/routes/broadcast.js';
+import ludoRoutes from './src/routes/ludo.js';
 import { PrismaClient } from '@prisma/client';
 import { depositService } from './src/services/depositService.js';
 import { bonusService } from './src/services/bonusService.js';
@@ -64,6 +65,7 @@ app.use('/api/deposit', depositRoutes);
 app.use('/api/bonus', bonusRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/broadcast', broadcastRoutes);
+app.use('/api/ludo', ludoRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -183,7 +185,8 @@ async function main() {
     console.log(`   Bonus: /api/bonus/apply, /create`);
     console.log(`   Referral: /api/referral/code, /list, /history`);
     console.log(`   Notifications: /api/notifications, /unread-count`);
-    console.log(`   Broadcast: /api/broadcast, /admin/notify (SUPER_ADMIN only)\n`);
+    console.log(`   Broadcast: /api/broadcast, /admin/notify (SUPER_ADMIN only)`);
+    console.log(`   Ludo: /api/ludo/start, /:id, /:id/roll, /:id/move, /:id/ai-turn, /history\n`);
   });
 }
 

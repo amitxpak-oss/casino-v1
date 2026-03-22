@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Gamepad2, Wallet, Users, Gift, ChevronRight, Star, Flame, Zap, Shield, Sparkles, Play, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Trophy, Gamepad2, Wallet, Users, Gift, ChevronRight, Star, Flame, Zap, Shield, Sparkles, Play, ArrowRight, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuthModal } from '../context/AuthModalContext';
+import { useAuth } from '../context/AuthContext';
 import { gameService, leaderboardService } from '../services/api';
 import toast from 'react-hot-toast';
 
 const Home = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { openLogin, openSignup } = useAuthModal();
   const [games, setGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -18,7 +22,7 @@ const Home = () => {
   const fetchPublicData = async () => {
     try {
       const [gamesRes, leaderboardRes] = await Promise.all([
-        gameService.getAll({ featured: true }).catch(() => ({ data: { games: [] } })),
+        gameService.getAll({}).catch(() => ({ data: { games: [] } })),
         leaderboardService.getTop(5).catch(() => ({ data: { leaders: [] } })),
       ]);
       setGames(gamesRes.data.games || []);
@@ -30,9 +34,26 @@ const Home = () => {
     }
   };
 
+  const handleViewAllGames = () => {
+    navigate('/dashboard/games');
+  };
+
   const handleProtectedAction = () => {
     toast.error('Please login to continue', { duration: 2000 });
     setTimeout(() => openLogin(), 500);
+  };
+
+  const handleGameClick = (game) => {
+    if (!user) {
+      toast.error('Please login to play games!', { duration: 2000 });
+      setTimeout(() => openLogin(), 500);
+      return;
+    }
+    if (game.name?.toLowerCase() === 'ludo') {
+      navigate('/dashboard/ludo');
+    } else {
+      navigate(`/dashboard/games/${game.id}`);
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -46,34 +67,40 @@ const Home = () => {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto">
-      <section className="relative overflow-hidden rounded-3xl p-8 sm:p-12 text-center mb-8 bg-gradient-to-br from-primary/20 via-neon-purple/15 to-neon-green/10 border border-primary/20 animate-border-glow">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-32 -right-32 w-64 h-64 sm:w-96 sm:h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute -bottom-32 -left-32 w-64 h-64 sm:w-96 sm:h-96 bg-neon-purple/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-neon-green/5 rounded-full blur-[120px]" />
+      <section className="relative overflow-hidden rounded-3xl mb-8">
+        <div className="absolute inset-0">
+          <img 
+            src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1400&h=600&fit=crop" 
+            alt="Gaming Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-900/30 via-purple-900/20 to-indigo-900/30" />
         </div>
         
-        <div className="relative z-10">
+        <div className="relative z-10 px-6 py-12 sm:px-12 sm:py-16 lg:py-20 text-center">
           <motion.div 
-            className="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-6 bg-gradient-to-br from-primary via-neon-purple to-purple-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/40 animate-pulse-glow"
+            className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-purple-500/40"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
           >
-            <Trophy size={48} className="sm:w-14 sm:h-14 text-white drop-shadow-lg" />
+            <Trophy size={40} className="sm:w-12 sm:h-12 text-white drop-shadow-lg" />
           </motion.div>
           
           <motion.h1 
-            className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-4"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            IndiaPlay
+            <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-2xl">
+              IndiaPlay
+            </span>
           </motion.h1>
           
           <motion.p 
-            className="text-base sm:text-lg text-white/60 mb-8 max-w-md mx-auto"
+            className="text-lg sm:text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto font-medium"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -88,7 +115,7 @@ const Home = () => {
             transition={{ delay: 0.4 }}
           >
             <motion.button 
-              className="px-8 py-4 rounded-2xl font-bold text-base cursor-pointer bg-white/10 backdrop-blur-md text-white border border-white/10 transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 hover:shadow-xl flex items-center justify-center gap-2 group"
+              className="px-10 py-4 rounded-2xl font-bold text-base cursor-pointer bg-white/10 backdrop-blur-xl text-white border border-white/20 transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 hover:shadow-2xl hover:shadow-white/10 flex items-center justify-center gap-2 group"
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={openLogin}
@@ -97,7 +124,7 @@ const Home = () => {
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </motion.button>
             <motion.button 
-              className="px-8 py-4 rounded-2xl font-bold text-base cursor-pointer bg-gradient-to-r from-primary to-neon-purple text-white shadow-xl shadow-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/40 flex items-center justify-center gap-2"
+              className="px-10 py-4 rounded-2xl font-bold text-base cursor-pointer bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-xl shadow-purple-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/50 flex items-center justify-center gap-2"
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={openSignup}
@@ -107,6 +134,9 @@ const Home = () => {
             </motion.button>
           </motion.div>
         </div>
+        
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-500/50 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
       </section>
 
       <section className="mb-8">
@@ -153,54 +183,98 @@ const Home = () => {
           </h2>
           <button 
             className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer bg-transparent text-text-secondary border border-white/10 transition-all duration-300 hover:bg-white/5 hover:text-white hover:border-primary/30 flex items-center gap-1"
-            onClick={handleProtectedAction}
+            onClick={handleViewAllGames}
           >
             View All <ChevronRight size={14} />
           </button>
         </div>
         
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-2xl p-5 skeleton skeleton-card">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl skeleton" />
-                <div className="w-3/4 h-5 mx-auto mb-2 rounded-lg skeleton" />
-                <div className="w-1/2 h-4 mx-auto rounded-lg skeleton" />
-              </div>
+              <div key={i} className="rounded-3xl skeleton skeleton-card h-[340px] sm:h-[380px]" />
             ))
           ) : games.length > 0 ? (
             games.slice(0, 4).map((game, index) => (
               <motion.div
                 key={game.id}
-                className="group premium-card rounded-2xl p-5 text-center cursor-pointer relative overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
+                className="relative rounded-3xl overflow-hidden cursor-pointer group h-[340px] sm:h-[380px]"
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index }}
-                whileHover={{ y: -6, scale: 1.02 }}
-                onClick={handleProtectedAction}
+                transition={{ delay: index * 0.1, type: 'spring', stiffness: 100 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+                onClick={() => handleGameClick(game)}
               >
+                <div className="absolute inset-0">
+                  <img 
+                    src={game.image || `https://picsum.photos/seed/${game.id}/400/500`}
+                    alt={game.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                </div>
+                
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-600/30 via-transparent to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="absolute inset-0 border border-white/10 rounded-3xl group-hover:border-pink-500/50 transition-colors duration-300" />
+                
                 {game.isHot && (
-                  <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-danger text-white text-[10px] font-bold flex items-center gap-1 shadow-lg shadow-danger/30 animate-pulse z-10">
-                    <Flame size={10} /> HOT
+                  <div className="absolute top-4 left-4 px-4 py-2 rounded-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white text-[11px] font-extrabold flex items-center gap-2 shadow-2xl shadow-red-500/50 animate-pulse z-20">
+                    <Flame size={14} className="drop-shadow-lg" />
+                    HOT
                   </div>
                 )}
-                <div 
-                  className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl font-black transition-transform group-hover:scale-110 group-hover:rotate-3"
-                  style={{ backgroundColor: game.color || '#6366f1', boxShadow: `0 10px 30px ${game.color || '#6366f1'}40` }}
-                >
-                  {game.icon || game.name?.charAt(0)}
+                
+                <div className="absolute top-4 right-4">
+                  <span className="px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-xl text-white/90 text-[10px] font-bold uppercase tracking-widest border border-white/20">
+                    {game.category || 'Arcade'}
+                  </span>
                 </div>
-                <h3 className="text-sm sm:text-base font-bold mb-2 truncate">{game.name}</h3>
-                <p className="text-[10px] sm:text-xs text-text-muted flex items-center justify-center gap-1.5 mb-4">
-                  <Users size={14} /> {game.players || 0} playing
-                </p>
-                <button className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm cursor-pointer bg-gradient-to-r from-primary to-neon-purple text-white shadow-lg transition-all duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
-                  <Play size={14} /> Play Now
-                </button>
+
+                <div className="absolute inset-0 flex items-center justify-center z-20">
+                  <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-2xl border-2 border-white/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-0 group-hover:scale-100 transition-all duration-500 shadow-2xl shadow-white/20">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-600 to-purple-600 flex items-center justify-center">
+                      <Play size={32} className="text-white ml-1 drop-shadow-lg" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-pink-600/80 to-purple-600/80 text-[9px] font-extrabold text-white uppercase tracking-widest backdrop-blur-sm">
+                        Premium
+                      </span>
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-black text-white drop-shadow-2xl tracking-tight">
+                      {game.name}
+                    </h3>
+                    <p className="text-sm text-white/60 mt-1 line-clamp-2">
+                      {game.description || `Win big with ${game.name}!`}
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-white/80 text-xs font-semibold">
+                        {game.players ? new Intl.NumberFormat('en-IN').format(game.players) : '500K'} Online
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 backdrop-blur-sm border border-green-500/30">
+                      <TrendingUp size={14} className="text-green-500" />
+                      <span className="text-green-500 text-xs font-bold">PLAY NOW</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-pink-600 via-purple-600 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="absolute inset-0 rounded-3xl group-hover:shadow-2xl group-hover:shadow-pink-500/20 transition-shadow duration-500" />
               </motion.div>
             ))
           ) : (
-            <div className="col-span-2 lg:col-span-4 text-center py-16 text-text-muted">
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 text-center py-16 text-text-muted">
               <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-bg-card flex items-center justify-center">
                 <Gamepad2 size={40} className="opacity-50" />
               </div>

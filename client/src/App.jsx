@@ -24,6 +24,7 @@ import AdminSubadmins from './pages/AdminSubadmins';
 import AdminBonusCodes from './pages/AdminBonusCodes';
 import AdminBroadcast from './pages/AdminBroadcast';
 import GamePlay from './pages/GamePlay';
+import LudoGame from './pages/LudoGame';
 import Deposit from './pages/Deposit';
 import Referral from './pages/Referral';
 
@@ -120,11 +121,7 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
         
-        <Route path="/dashboard/games" element={
-          <ProtectedRoute title="Unlock Premium Games" message="Login to play exciting games and win big prizes">
-            <Games />
-          </ProtectedRoute>
-        } />
+        <Route path="/dashboard/games" element={<Games />} />
         
         <Route path="/dashboard/wallet" element={
           <ProtectedRoute title="Access Your Wallet" message="Login to manage your funds and transactions">
@@ -227,6 +224,12 @@ function AppRoutes() {
         <Route path="/dashboard/games/:id" element={
           <ProtectedRoute title="Start Playing" message="Login to play this game and win exciting rewards">
             <GamePlay />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/dashboard/ludo" element={
+          <ProtectedRoute title="Play Ludo" message="Login to play Ludo and win exciting rewards">
+            <LudoGame />
           </ProtectedRoute>
         } />
         

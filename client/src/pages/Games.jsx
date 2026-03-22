@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Gamepad2, Flame, Star, Play, Users, Search, TrendingUp, X, Sparkles, Zap, Trophy } from 'lucide-react';
+import { Gamepad2, Flame, Star, Play, Users, Search, TrendingUp, X, Sparkles, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gameService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const Games = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [games, setGames] = useState([]);
   const [filteredGames, setFilteredGames] = useState([]);
@@ -14,6 +17,8 @@ const Games = () => {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [selectedGame, setSelectedGame] = useState(null);
 
   useEffect(() => {
     fetchGames();
@@ -48,7 +53,28 @@ const Games = () => {
   };
 
   const handlePlay = (game) => {
-    navigate(`/dashboard/games/${game.id}`);
+    if (!user) {
+      setSelectedGame(game);
+      setShowLoginPrompt(true);
+      toast.error('Please login to play games!');
+      return;
+    }
+    
+    if (game.name?.toLowerCase() === 'ludo') {
+      navigate('/dashboard/ludo');
+    } else {
+      navigate(`/dashboard/games/${game.id}`);
+    }
+  };
+
+  const handleLoginPromptClose = () => {
+    setShowLoginPrompt(false);
+    setSelectedGame(null);
+  };
+
+  const handleGoToLogin = () => {
+    setShowLoginPrompt(false);
+    navigate('/login');
   };
 
   const getGradient = (color) => {
@@ -82,6 +108,51 @@ const Games = () => {
 
   return (
     <div className="h-full flex flex-col min-h-0 bg-gradient-to-b from-[#0a0a14] to-[#050508]">
+      {/* Login Prompt Modal */}
+      <AnimatePresence>
+        {showLoginPrompt && selectedGame && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={handleLoginPromptClose}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="premium-card rounded-3xl p-6 max-w-sm w-full text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl shadow-amber-500/30">
+                <Lock size={32} className="text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Login Required</h3>
+              <p className="text-gray-400 mb-4">
+                Please login to play <span className="text-white font-semibold">{selectedGame?.name}</span> and win exciting rewards!
+              </p>
+              <div className="flex flex-col gap-3">
+                <motion.button
+                  onClick={handleGoToLogin}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Login Now
+                </motion.button>
+                <button
+                  onClick={handleLoginPromptClose}
+                  className="w-full py-3 rounded-xl bg-white/5 text-gray-400 font-medium hover:text-white transition-colors"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Premium Header */}
       <div className="flex-shrink-0 pb-4 border-b border-white/10 bg-gradient-to-b from-[#0a0a14] to-transparent">
         <div className="flex items-center justify-between">

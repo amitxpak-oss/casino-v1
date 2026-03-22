@@ -128,6 +128,17 @@ async function main() {
     console.log('✅ Created Bonus Codes\n');
   }
 
+  // Create games - Only Ludo for now
+  const gameCount = await prisma.game.count();
+  if (gameCount === 0) {
+    await prisma.game.createMany({
+      data: [
+        { name: 'Ludo', description: 'Classic dice game - Roll dice, move tokens, beat the AI!', category: 'Arcade', minBet: 10, maxBet: 5000, maxWin: 10000, color: '#ec4899', icon: 'Gamepad2', isHot: true, isFeatured: true, players: 500000, image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=400&fit=crop' },
+      ]
+    });
+    console.log('✅ Created Ludo Game');
+  }
+
   console.log('═══════════════════════════════════════════');
   console.log('          SEEDING COMPLETE!');
   console.log('═══════════════════════════════════════════');
